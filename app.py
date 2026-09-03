@@ -16,12 +16,12 @@ st.markdown("""
     }
     
     body {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%);
         color: #e2e8f0;
     }
     
     [data-testid="stAppViewContainer"] {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%);
     }
     
     [data-testid="stHeader"] {
@@ -29,75 +29,76 @@ st.markdown("""
     }
     
     .main-title {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c44569 100%);
+        background: linear-gradient(135deg, #a63446 0%, #722c46 50%, #4a1a2e 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 3.5em;
+        font-size: 2.8em;
         font-weight: 900;
-        margin-bottom: 10px;
-        text-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+        margin-bottom: 5px;
+        text-shadow: 0 4px 20px rgba(166, 52, 70, 0.3);
+        letter-spacing: -0.5px;
     }
     
     .subtitle {
-        color: #94a3b8;
-        font-size: 1.2em;
-        margin-bottom: 30px;
-    }
-    
-    .metric-card {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        color: #d4a5b0;
+        font-size: 1em;
+        margin-bottom: 20px;
+        font-weight: 500;
     }
     
     [data-testid="stMetric"] {
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8)) !important;
-        border: 1px solid rgba(148, 163, 184, 0.3) !important;
+        background: linear-gradient(135deg, rgba(44, 28, 46, 0.8), rgba(26, 15, 26, 0.8)) !important;
+        border: 2px solid rgba(166, 52, 70, 0.4) !important;
         border-radius: 12px !important;
-        padding: 20px !important;
+        padding: 16px !important;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
     }
     
+    [data-testid="stMetric"] label {
+        color: #d4a5b0 !important;
+        font-size: 0.85em !important;
+        font-weight: 600 !important;
+    }
+    
+    [data-testid="stMetric"] div:last-child {
+        color: #f1f5f9 !important;
+        font-size: 1.5em !important;
+        font-weight: 700 !important;
+    }
+    
     .athlete-type-section {
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
-        border-left: 4px solid #8b5cf6;
-        padding: 25px;
+        background: linear-gradient(135deg, rgba(166, 52, 70, 0.15), rgba(114, 44, 70, 0.15));
+        border-left: 5px solid #a63446;
+        padding: 20px;
         border-radius: 12px;
         margin: 20px 0;
     }
     
     .athlete-type-label {
-        color: #c4b5fd;
-        font-size: 0.9em;
+        color: #d4a5b0;
+        font-size: 0.85em;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+        font-weight: 700;
     }
     
     .athlete-type-badge {
-        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+        background: linear-gradient(135deg, #a63446 0%, #722c46 100%);
         color: #fff;
-        font-size: 1.8em;
+        font-size: 2em;
         font-weight: 900;
-        padding: 15px 25px;
-        border-radius: 10px;
-        display: inline-block;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    
-    .tab-content {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        padding: 18px 30px;
         border-radius: 12px;
-        padding: 25px;
-        margin-top: 20px;
-        border: 1px solid rgba(148, 163, 184, 0.2);
+        display: inline-block;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 24px rgba(166, 52, 70, 0.3);
+        letter-spacing: 0.5px;
     }
     
     [data-baseweb="tab-list"] {
-        border-bottom: 2px solid rgba(148, 163, 184, 0.2) !important;
+        border-bottom: 3px solid rgba(166, 52, 70, 0.3) !important;
     }
     
     [data-baseweb="tab"] {
@@ -105,72 +106,109 @@ st.markdown("""
         color: #94a3b8 !important;
         border-radius: 8px 8px 0 0 !important;
         font-weight: 600 !important;
+        padding: 10px 15px !important;
     }
     
     [aria-selected="true"] {
-        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
+        background: linear-gradient(135deg, #a63446 0%, #722c46 100%) !important;
         color: #fff !important;
-    }
-    
-    .expander-header {
-        font-weight: 600;
-        color: #e2e8f0;
+        box-shadow: 0 -4px 12px rgba(166, 52, 70, 0.3) !important;
     }
     
     .data-row {
-        background: rgba(30, 41, 59, 0.5);
-        padding: 15px;
+        background: rgba(44, 28, 46, 0.6);
+        padding: 12px;
         border-radius: 8px;
-        margin: 10px 0;
-        border-left: 3px solid #8b5cf6;
+        margin: 8px 0;
+        border-left: 4px solid #a63446;
+        border-top: 1px solid rgba(166, 52, 70, 0.3);
     }
     
     .data-label {
         color: #cbd5e1;
-        font-size: 0.95em;
+        font-size: 0.9em;
+        font-weight: 600;
+    }
+    
+    .rank-badge {
+        display: inline-block;
+        font-weight: 900;
+        font-size: 1.2em;
+        padding: 4px 10px;
+        border-radius: 6px;
+        min-width: 40px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        margin-right: 8px;
+    }
+    
+    .rank-s {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #78350f;
+        font-weight: 900;
+    }
+    
+    .rank-a {
+        background: linear-gradient(135deg, #f87171, #ef4444);
+        color: #fff;
+        font-weight: 900;
+    }
+    
+    .rank-b {
+        background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        color: #fff;
+        font-weight: 900;
+    }
+    
+    .rank-c {
+        background: linear-gradient(135deg, #4ade80, #22c55e);
+        color: #fff;
+        font-weight: 900;
     }
     
     .data-value {
         color: #f1f5f9;
-        font-weight: 700;
-        font-size: 1.1em;
+        font-weight: 600;
+        font-size: 1em;
+        margin-top: 4px;
     }
-    
-    .rank-s { color: #fbbf24; font-weight: 900; }
-    .rank-a { color: #f87171; font-weight: 900; }
-    .rank-b { color: #60a5fa; font-weight: 900; }
-    .rank-c { color: #4ade80; font-weight: 900; }
     
     hr {
         border: none;
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.2), transparent);
-        margin: 15px 0;
-    }
-    
-    .chart-container {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 12px;
-        padding: 15px;
+        background: linear-gradient(90deg, transparent, rgba(166, 52, 70, 0.3), transparent);
+        margin: 12px 0;
     }
     
     .info-box {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
-        border-left: 4px solid #3b82f6;
+        background: linear-gradient(135deg, rgba(166, 52, 70, 0.1), rgba(114, 44, 70, 0.1));
+        border-left: 4px solid #a63446;
         padding: 15px;
         border-radius: 8px;
-        margin: 15px 0;
-        color: #bfdbfe;
+        margin: 12px 0;
+        color: #d4a5b0;
+        font-size: 0.95em;
+        line-height: 1.6;
     }
     
     .warning-box {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1));
-        border-left: 4px solid #f59e0b;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(166, 52, 70, 0.1));
+        border-left: 4px solid #a63446;
         padding: 15px;
         border-radius: 8px;
-        margin: 15px 0;
-        color: #fed7aa;
+        margin: 12px 0;
+        color: #fcd34d;
+        font-size: 0.95em;
+        line-height: 1.6;
+    }
+    
+    .metric-row {
+        display: flex;
+        gap: 10px;
+    }
+    
+    [data-testid="column"] {
+        gap: 8px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -212,17 +250,17 @@ def get_rank_label(score):
     else:
         return "C"
 
-def get_rank_color(score):
+def get_rank_class(score):
     if pd.isna(score):
-        return "gray"
+        return "rank-badge"
     elif score >= 65:
-        return "rank-s"
+        return "rank-badge rank-s"
     elif score >= 55:
-        return "rank-a"
+        return "rank-badge rank-a"
     elif score >= 45:
-        return "rank-b"
+        return "rank-badge rank-b"
     else:
-        return "rank-c"
+        return "rank-badge rank-c"
 
 @st.cache_data(ttl=60)
 def load_excel_data(file_path_or_buffer):
@@ -272,10 +310,8 @@ def load_excel_data(file_path_or_buffer):
     return df
 
 # ヘッダー
-col_empty, col_title = st.columns([1, 4])
-with col_title:
-    st.markdown("<div class='main-title'>🏃 ATHLETE PERFORMANCE</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>コントロールテスト測定結果＆パフォーマンス分析</div>", unsafe_allow_html=True)
+st.markdown("<div class='main-title'>🏃 ATHLETE PERFORMANCE</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>コントロールテスト測定結果＆パフォーマンス分析</div>", unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -320,11 +356,16 @@ st.sidebar.download_button(
 
 # プロフィール
 col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("ID", latest_data['ID'])
-col2.metric("選手", f"{latest_data.get('名前', '---')}")
-col3.metric("性別", player_gender)
-col4.metric("身長", f"{latest_data['身長']:.1f} cm" if pd.notna(latest_data.get('身長')) else "---")
-col5.metric("体重", "非表示" if player_gender == '女' else f"{latest_data['体重']:.1f} kg" if pd.notna(latest_data.get('体重')) else "---")
+with col1:
+    st.metric("ID", latest_data['ID'])
+with col2:
+    st.metric("選手", latest_data.get('名前', '---')[:10])
+with col3:
+    st.metric("性別", player_gender)
+with col4:
+    st.metric("身長", f"{latest_data['身長']:.0f}cm" if pd.notna(latest_data.get('身長')) else "---")
+with col5:
+    st.metric("体重", "−" if player_gender == '女' else f"{latest_data['体重']:.0f}kg" if pd.notna(latest_data.get('体重')) else "---")
 
 scores = {}
 gender_df = df[df['性別'] == player_gender]
@@ -413,7 +454,7 @@ radar_symbols = list(radar_symbols_dict.values())
 radar_values_closed = radar_values + [radar_values[0]]
 radar_categories_closed = radar_categories + [radar_categories[0]]
 radar_symbols_closed = radar_symbols + [radar_symbols[0]]
-marker_colors = ['#ef4444' if s == 'x' else '#8b5cf6' for s in radar_symbols_closed]
+marker_colors = ['#ef4444' if s == 'x' else '#a63446' for s in radar_symbols_closed]
 marker_sizes = [12 if s == 'x' else 8 for s in radar_symbols_closed]
 
 tab1, tab2, tab3 = st.tabs(["📊 レーダーチャート", "📈 推移グラフ", "📋 詳細データ"])
@@ -423,17 +464,17 @@ with tab1:
     with col_chart:
         fig_radar = go.Figure(data=go.Scatterpolar(
             r=radar_values_closed, theta=radar_categories_closed, fill='toself',
-            fillcolor='rgba(139, 92, 246, 0.3)', line=dict(color='#8b5cf6', width=3), 
+            fillcolor='rgba(166, 52, 70, 0.25)', line=dict(color='#a63446', width=3), 
             mode='lines+markers', marker=dict(symbol=radar_symbols_closed, size=marker_sizes, color=marker_colors)
         ))
         fig_radar.update_layout(
             polar=dict(
-                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(148, 163, 184, 0.2)"),
-                angularaxis=dict(gridcolor="rgba(148, 163, 184, 0.2)")
+                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(166, 52, 70, 0.2)"),
+                angularaxis=dict(gridcolor="rgba(166, 52, 70, 0.2)")
             ),
             showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=450,
-            plot_bgcolor='rgba(15, 23, 42, 0.5)',
-            paper_bgcolor='rgba(15, 23, 42, 0.5)',
+            plot_bgcolor='rgba(26, 15, 26, 0.5)',
+            paper_bgcolor='rgba(26, 15, 26, 0.5)',
             font=dict(color='#e2e8f0')
         )
         st.plotly_chart(fig_radar, use_container_width=True)
@@ -461,8 +502,8 @@ with tab1:
         else:
             st.markdown(f"""
                 <div class='info-box'>
-                💪 最大の武器：<strong>{top1_cat}</strong><br>
-                ⚠️ ボトルネック：<strong>{worst_cat}</strong> (スコア: {worst_score:.1f})
+                💪 <strong>最大の武器</strong>：{top1_cat}<br>
+                ⚠️ <strong>ボトルネック</strong>：{worst_cat} (スコア: {worst_score:.1f})
                 </div>
             """, unsafe_allow_html=True)
 
@@ -474,22 +515,22 @@ with tab2:
         fig_line.add_trace(go.Scatter(
             x=player_data['測定日'], y=player_data[selected_metric], mode='lines+markers+text',
             text=[f"{v:.1f}" if pd.notna(v) else "" for v in player_data[selected_metric]], textposition="top center",
-            line=dict(color='#8b5cf6', width=3), marker=dict(size=10, color='#ec4899')
+            line=dict(color='#a63446', width=3), marker=dict(size=10, color='#722c46')
         ))
         fig_line.update_layout(
             showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=400,
-            plot_bgcolor='rgba(15, 23, 42, 0.5)',
-            paper_bgcolor='rgba(15, 23, 42, 0.5)',
+            plot_bgcolor='rgba(26, 15, 26, 0.5)',
+            paper_bgcolor='rgba(26, 15, 26, 0.5)',
             font=dict(color='#e2e8f0'),
-            xaxis=dict(gridcolor='rgba(148, 163, 184, 0.2)'),
-            yaxis=dict(gridcolor='rgba(148, 163, 184, 0.2)')
+            xaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)'),
+            yaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)')
         )
         st.plotly_chart(fig_line, use_container_width=True)
     else:
         st.info("📊 複数回の測定データが必要です")
 
 with tab3:
-    st.markdown("**ランク基準** | Sランク: 65以上 | Aランク: 55以上 | Bランク: 45以上 | Cランク: 45未満")
+    st.markdown("**ランク基準** | **S**：65以上 | **A**：55以上 | **B**：45以上 | **C**：45未満")
     
     categories_ui = {
         "🚀 跳躍・下肢パワー": ['垂直跳び', 'DJ_RSI', '立ち幅跳び', '12段跳び'],
@@ -522,12 +563,12 @@ with tab3:
                 val_str = f"{val:.2f}" if pd.notna(val) else "未測定"
                 score = scores.get(k, np.nan)
                 rank = get_rank_label(score)
-                rank_class = get_rank_color(score)
+                rank_class = get_rank_class(score)
                 
                 st.markdown(f"""
                     <div class='data-row'>
                         <span class='data-label'>{k}</span><br>
-                        <span class='data-value'>[<span class='{rank_class}'>{rank}</span>] {val_str}</span>
+                        <span class='{rank_class}'>{rank}</span><span class='data-value'>{val_str}</span>
                     </div>
                 """, unsafe_allow_html=True)
                 st.caption(descriptions[k])
