@@ -10,84 +10,94 @@ st.set_page_config(page_title="コントロールテスト フィードバック
 st.markdown("""
     <style>
     * { margin: 0; padding: 0; }
-    body { background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%); color: #e2e8f0; }
-    [data-testid="stAppViewContainer"] { background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%); }
+    
+    /* 背景を臙脂色に馴染む深いダークレッド・ブラックに */
+    body { background: linear-gradient(135deg, #190f13 0%, #2a161d 100%); color: #ffffff; }
+    [data-testid="stAppViewContainer"] { background: linear-gradient(135deg, #190f13 0%, #2a161d 100%); }
     [data-testid="stHeader"] { background-color: transparent; }
     
+    /* メインタイトル・サブタイトル */
     .main-title {
-        background: linear-gradient(135deg, #a63446 0%, #722c46 50%, #4a1a2e 100%);
+        background: linear-gradient(135deg, #c73a54 0%, #a63446 50%, #722c46 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         font-size: 2.0em; font-weight: 900; margin-bottom: 5px;
-        text-shadow: 0 4px 20px rgba(166, 52, 70, 0.3); letter-spacing: -0.5px;
+        text-shadow: 0 4px 20px rgba(166, 52, 70, 0.4); letter-spacing: -0.5px;
     }
-    .subtitle { color: #f0f0f0; font-size: 1.1em; margin-bottom: 20px; font-weight: 600; }
+    .subtitle { color: #ffffff; font-size: 1.1em; margin-bottom: 20px; font-weight: 700; }
     
+    /* 上部のメトリック（ID, 氏名など） */
     [data-testid="stMetric"] {
-        background: linear-gradient(135deg, rgba(44, 28, 46, 0.8), rgba(26, 15, 26, 0.8)) !important;
-        border: 2px solid rgba(166, 52, 70, 0.4) !important; border-radius: 12px !important;
-        padding: 12px 16px !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+        background: linear-gradient(135deg, rgba(74, 25, 40, 0.6), rgba(42, 15, 22, 0.8)) !important;
+        border: 2px solid rgba(166, 52, 70, 0.6) !important; border-radius: 12px !important;
+        padding: 12px 16px !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
     }
-    [data-testid="stMetric"] label { color: #e0e0e0 !important; font-size: 0.75em !important; font-weight: 700 !important; letter-spacing: 0.5px !important; }
-    [data-testid="stMetric"] div:nth-child(2) { font-size: 1.0em !important; font-weight: 700 !important; color: #ffffff !important; }
+    [data-testid="stMetric"] label { color: #ffffff !important; font-size: 0.8em !important; font-weight: 800 !important; letter-spacing: 0.5px !important; }
+    [data-testid="stMetric"] div:nth-child(2) { font-size: 1.1em !important; font-weight: 900 !important; color: #ffffff !important; }
     
+    /* アスリートタイプ */
     .athlete-type-section {
-        background: linear-gradient(135deg, rgba(166, 52, 70, 0.15), rgba(114, 44, 70, 0.15));
-        border-left: 5px solid #a63446; padding: 20px; border-radius: 12px; margin: 20px 0;
+        background: linear-gradient(135deg, rgba(166, 52, 70, 0.25), rgba(114, 44, 70, 0.25));
+        border-left: 5px solid #c73a54; padding: 20px; border-radius: 12px; margin: 20px 0;
     }
-    .athlete-type-label { color: #e0e0e0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; font-weight: 700; }
+    .athlete-type-label { color: #ffffff; font-size: 0.95em; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; font-weight: 800; }
     .athlete-type-badge {
-        background: linear-gradient(135deg, #a63446 0%, #722c46 100%);
-        color: #fff; font-size: 2em; font-weight: 900; padding: 18px 30px;
+        background: linear-gradient(135deg, #c73a54 0%, #a63446 100%);
+        color: #ffffff; font-size: 2em; font-weight: 900; padding: 18px 30px;
         border-radius: 12px; display: inline-block;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); box-shadow: 0 8px 24px rgba(166, 52, 70, 0.3); letter-spacing: 0.5px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); box-shadow: 0 8px 24px rgba(166, 52, 70, 0.5); letter-spacing: 0.5px;
     }
     
-    [data-baseweb="tab-list"] { border-bottom: 3px solid rgba(166, 52, 70, 0.3) !important; }
+    /* タブデザイン（すべて白文字化） */
+    [data-baseweb="tab-list"] { border-bottom: 3px solid rgba(166, 52, 70, 0.5) !important; }
     [data-baseweb="tab"] {
-        background-color: transparent !important; color: #c0c0c0 !important;
-        border-radius: 8px 8px 0 0 !important; font-weight: 600 !important;
-        padding: 10px 15px !important; font-size: 0.95em !important;
+        background-color: transparent !important; color: #ffffff !important;
+        border-radius: 8px 8px 0 0 !important; font-weight: 700 !important;
+        padding: 10px 15px !important; font-size: 1.0em !important; opacity: 0.7;
     }
     [aria-selected="true"] {
-        background: linear-gradient(135deg, #a63446 0%, #722c46 100%) !important; color: #fff !important;
-        box-shadow: 0 -4px 12px rgba(166, 52, 70, 0.3) !important;
+        background: linear-gradient(135deg, #c73a54 0%, #a63446 100%) !important; color: #ffffff !important;
+        box-shadow: 0 -4px 12px rgba(166, 52, 70, 0.4) !important; opacity: 1.0 !important;
     }
     
-    /* 詳細データの視認性向上 */
+    /* 詳細データ・解説テキスト */
     .data-row {
-        background: rgba(15, 8, 15, 0.7);
+        background: rgba(42, 15, 22, 0.8);
         padding: 16px; border-radius: 8px; margin: 10px 0;
-        border-left: 4px solid #a63446; border-top: 1px solid rgba(166, 52, 70, 0.4);
+        border-left: 5px solid #c73a54; border-top: 1px solid rgba(166, 52, 70, 0.5);
     }
-    .data-label { color: #ffffff; font-size: 1.05em; font-weight: 700; letter-spacing: 0.5px; }
-    .data-value { color: #ffffff; font-weight: 800; font-size: 1.15em; margin-left: 8px; }
+    .data-label { color: #ffffff !important; font-size: 1.1em !important; font-weight: 800 !important; letter-spacing: 0.5px; }
+    .data-value { color: #ffffff !important; font-weight: 900 !important; font-size: 1.25em !important; margin-left: 12px; }
     .description-text {
-        color: #f8fafc; font-size: 0.9em; font-weight: 500;
-        margin-top: 8px; line-height: 1.6; opacity: 0.95;
+        color: #ffffff !important; font-size: 0.95em !important; font-weight: 600 !important;
+        margin-top: 10px; line-height: 1.6;
     }
     
+    /* ランクバッジ */
     .rank-badge {
         display: inline-block; font-weight: 900; font-size: 1.2em; padding: 4px 12px;
         border-radius: 6px; min-width: 45px; text-align: center;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); margin-right: 12px;
     }
-    .rank-s { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; }
-    .rank-a { background: linear-gradient(135deg, #f87171, #ef4444); color: #fff; }
-    .rank-b { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
-    .rank-c { background: linear-gradient(135deg, #4ade80, #22c55e); color: #fff; }
+    .rank-s { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #451a03; }
+    .rank-a { background: linear-gradient(135deg, #f87171, #ef4444); color: #ffffff; }
+    .rank-b { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #ffffff; }
+    .rank-c { background: linear-gradient(135deg, #4ade80, #22c55e); color: #ffffff; }
+    .rank-none { background: #4a4a4a; color: #ffffff; }
     
+    /* コメント・警告ボックス */
     .info-box, .warning-box {
-        border-left: 4px solid #a63446; padding: 15px; border-radius: 8px; margin: 12px 0;
-        font-size: 0.95em; line-height: 1.6; font-weight: 500;
+        border-left: 5px solid #c73a54; padding: 18px; border-radius: 8px; margin: 12px 0;
+        font-size: 1.0em; line-height: 1.6; font-weight: 700; color: #ffffff !important;
     }
-    .info-box { background: linear-gradient(135deg, rgba(166, 52, 70, 0.1), rgba(114, 44, 70, 0.1)); color: #e0e0e0; }
-    .warning-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(166, 52, 70, 0.1)); color: #fce69e; }
+    .info-box { background: linear-gradient(135deg, rgba(166, 52, 70, 0.2), rgba(114, 44, 70, 0.2)); }
+    .warning-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(166, 52, 70, 0.2)); }
     
-    [data-testid="stSelectbox"] label { color: #ffffff !important; font-weight: bold !important; }
-    [data-testid="stSelectbox"] div, [data-baseweb="select"], [data-baseweb="select"] div { background-color: #ffffff !important; color: #000000 !important; }
-    [data-testid="stExpander"] button { background-color: rgba(44, 28, 46, 0.8) !important; color: #ffffff !important; font-weight: 700 !important; border: 1px solid #a63446 !important; }
+    /* UIパーツ（プルダウン・ボタン） */
+    [data-testid="stSelectbox"] label { color: #ffffff !important; font-weight: 800 !important; }
+    [data-testid="stSelectbox"] div, [data-baseweb="select"], [data-baseweb="select"] div { background-color: #ffffff !important; color: #000000 !important; font-weight: 700 !important; }
+    [data-testid="stExpander"] button { background-color: rgba(74, 25, 40, 0.8) !important; color: #ffffff !important; font-weight: 800 !important; border: 1px solid #c73a54 !important; }
     [data-testid="stExpanderDetails"] { background-color: transparent !important; }
     
     /* スマホ画面向けの最適化 */
@@ -132,7 +142,7 @@ def get_rank_label(score):
     else: return "C"
 
 def get_rank_class(score):
-    if pd.isna(score): return "rank-badge"
+    if pd.isna(score): return "rank-badge rank-none"
     elif score >= 65: return "rank-badge rank-s"
     elif score >= 55: return "rank-badge rank-a"
     elif score >= 45: return "rank-badge rank-b"
@@ -188,7 +198,6 @@ def load_excel_data(file_path_or_buffer):
 st.markdown("<div class='main-title'>🏃 ATHLETE PERFORMANCE</div>", unsafe_allow_html=True)
 st.markdown("<div class='subtitle'>コントロールテスト測定結果＆パフォーマンス分析</div>", unsafe_allow_html=True)
 
-# サイドバーは管理者向け操作（ファイルアップロード等）のみ残す
 st.sidebar.image("https://img.icons8.com/color/96/000000/running.png", width=64)
 st.sidebar.title("⚙️ 管理メニュー")
 uploaded_file = st.sidebar.file_uploader("Excelデータを更新", type=["xlsx", "xls"])
@@ -201,7 +210,6 @@ if df is None or df.empty or '名前' not in df.columns:
 
 st.markdown("---")
 
-# メイン画面上部で選手を選択（スマホから直接操作可能）
 sel_col1, sel_col2 = st.columns(2)
 with sel_col1:
     selected_year = st.selectbox("📅 入学年度を選択", sorted(df['入学年度'].unique(), reverse=True))
@@ -320,7 +328,7 @@ radar_symbols = list(radar_symbols_dict.values())
 radar_values_closed = radar_values + [radar_values[0]]
 radar_categories_closed = radar_categories + [radar_categories[0]]
 radar_symbols_closed = radar_symbols + [radar_symbols[0]]
-marker_colors = ['#ef4444' if s == 'x' else '#a63446' for s in radar_symbols_closed]
+marker_colors = ['#ef4444' if s == 'x' else '#c73a54' for s in radar_symbols_closed]
 marker_sizes = [12 if s == 'x' else 8 for s in radar_symbols_closed]
 
 tab1, tab2, tab3 = st.tabs(["📊 レーダーチャート", "📈 推移グラフ", "📋 詳細データ"])
@@ -330,17 +338,17 @@ with tab1:
     with col_chart:
         fig_radar = go.Figure(data=go.Scatterpolar(
             r=radar_values_closed, theta=radar_categories_closed, fill='toself',
-            fillcolor='rgba(166, 52, 70, 0.25)', line=dict(color='#a63446', width=3), 
+            fillcolor='rgba(199, 58, 84, 0.3)', line=dict(color='#c73a54', width=3), 
             mode='lines+markers', marker=dict(symbol=radar_symbols_closed, size=marker_sizes, color=marker_colors)
         ))
         fig_radar.update_layout(
             polar=dict(
-                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(166, 52, 70, 0.2)"),
-                angularaxis=dict(gridcolor="rgba(166, 52, 70, 0.2)")
+                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(255, 255, 255, 0.15)"),
+                angularaxis=dict(gridcolor="rgba(255, 255, 255, 0.15)")
             ),
             showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=450,
-            plot_bgcolor='rgba(26, 15, 26, 0.5)', paper_bgcolor='rgba(26, 15, 26, 0.5)',
-            font=dict(color='#e2e8f0')
+            plot_bgcolor='rgba(0, 0, 0, 0)', paper_bgcolor='rgba(0, 0, 0, 0)',
+            font=dict(color='#ffffff', size=13)
         )
         st.plotly_chart(fig_radar, use_container_width=True)
 
@@ -380,12 +388,13 @@ with tab2:
         fig_line.add_trace(go.Scatter(
             x=player_data['測定日'], y=player_data[selected_metric], mode='lines+markers+text',
             text=[f"{v:.1f}" if pd.notna(v) else "" for v in player_data[selected_metric]], textposition="top center",
-            line=dict(color='#a63446', width=3), marker=dict(size=10, color='#722c46')
+            line=dict(color='#c73a54', width=4), marker=dict(size=12, color='#ffffff', line=dict(color='#c73a54', width=2))
         ))
         fig_line.update_layout(
             showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=400,
-            plot_bgcolor='rgba(26, 15, 26, 0.5)', paper_bgcolor='rgba(26, 15, 26, 0.5)',
-            font=dict(color='#e2e8f0'), xaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)'), yaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)')
+            plot_bgcolor='rgba(0, 0, 0, 0)', paper_bgcolor='rgba(0, 0, 0, 0)',
+            font=dict(color='#ffffff', size=13),
+            xaxis=dict(gridcolor='rgba(255, 255, 255, 0.1)'), yaxis=dict(gridcolor='rgba(255, 255, 255, 0.1)')
         )
         st.plotly_chart(fig_line, use_container_width=True)
     else:
@@ -403,19 +412,19 @@ with tab3:
     }
     
     descriptions = {
-        '垂直跳び': '垂直方向への爆発的パワーの評価。実質測定値より身長×1.30の値＊身長＋腕。簡易測定が可能なので自分の測定値を覚えておき、簡単に測定、比較できるぞ！',
-        'DJ_RSI': '下肢のバネ性能を示す反応筋力指数。どれだけ短い接地時間で、どれだけ力を発揮できたかを示す指標。スプリントでは、最大走速度の向上に寄与する',
-        '立ち幅跳び': '水平方向への爆発的パワー発揮能力。垂直跳びと比べ、水平方向へのパワー発揮が0からのスタートに寄与する',
-        '12段跳び': '連続跳躍による推進力と弾性エネルギーの再利用。SSCの能力と水平方向のパワーの総合評価できる指標',
-        '前投げ': '下肢から上半身への力の伝達、全身を使ったパワー発揮。',
-        '後ろ投げ': '股関節伸展を主体とした全身爆発力。背部を強調したパワー発揮',
-        'SQ_1RM': 'すべてのパワーの土台となる基礎筋力。男子は自身の体重の2倍の重量を、女子は1.5倍はマストで挙上できるようにはなりたい',
-        '懸垂': '上半身の引く筋力および筋持久力、簡易的な筋力の評価にもなる。',
-        'RAST_max_bw': '無酸素運動における最高出力。ATP-CP系のエネルギー産生能力＋スプリント能力の評価',
-        'RAST_min_bw': '疲労状態での出力。解糖系のエネルギー産生能力＋後半スプリント能力の評価になる',
-        'RAST_mean_bw': '無酸素運動を持続するための総合評価',
+        '垂直跳び': 'SSCを伴わない下肢の純粋な爆発的パワー',
+        'DJ_RSI': '下肢のバネ性能を示す反応筋力指数',
+        '立ち幅跳び': '水平方向への爆発的パワー発揮能力',
+        '12段跳び': '連続跳躍による推進力と弾性エネルギーの再利用',
+        '前投げ': '体幹から上半身への力の伝達',
+        '後ろ投げ': '股関節伸展を主体とした全身爆発力',
+        'SQ_1RM': 'すべてのパワーの土台となる基礎筋力',
+        '懸垂': '上半身の引く筋力および筋持久力',
+        'RAST_max_bw': '無酸素運動における最高出力',
+        'RAST_min_bw': '疲労状態での底力',
+        'RAST_mean_bw': '無酸素運動を持続するための総合容量',
         'RAST_drop_bw': 'パワー減少率（低いほど疲労耐性が高い）',
-        'シャトルラン': '有酸素性能力（全身持久力）。ラウンド間での回復力等も有酸素能力に依存するため、スプリンターは最低100があるとよい'
+        'シャトルラン': '有酸素性能力（全身持久力）'
     }
 
     for cat_name, items in categories_ui.items():
@@ -427,7 +436,6 @@ with tab3:
                 rank = get_rank_label(score)
                 rank_class = get_rank_class(score)
                 
-                # HTMLクラスで専用のスタイルを適用し、st.captionを使わない
                 st.markdown(f"""
                     <div class='data-row'>
                         <span class='data-label'>{k}</span><br>
