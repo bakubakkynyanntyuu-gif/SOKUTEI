@@ -33,7 +33,7 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 2.8em;
+        font-size: 2.0em;
         font-weight: 900;
         margin-bottom: 5px;
         text-shadow: 0 4px 20px rgba(166, 52, 70, 0.3);
@@ -41,30 +41,31 @@ st.markdown("""
     }
     
     .subtitle {
-        color: #d4a5b0;
-        font-size: 1em;
+        color: #f0f0f0;
+        font-size: 1.1em;
         margin-bottom: 20px;
-        font-weight: 500;
+        font-weight: 600;
     }
     
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, rgba(44, 28, 46, 0.8), rgba(26, 15, 26, 0.8)) !important;
         border: 2px solid rgba(166, 52, 70, 0.4) !important;
         border-radius: 12px !important;
-        padding: 16px !important;
+        padding: 12px 16px !important;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
     }
     
     [data-testid="stMetric"] label {
-        color: #d4a5b0 !important;
-        font-size: 0.85em !important;
-        font-weight: 600 !important;
+        color: #e0e0e0 !important;
+        font-size: 0.75em !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
     }
     
-    [data-testid="stMetric"] div:last-child {
-        color: #f1f5f9 !important;
-        font-size: 1.5em !important;
+    [data-testid="stMetric"] div:nth-child(2) {
+        font-size: 1.0em !important;
         font-weight: 700 !important;
+        color: #ffffff !important;
     }
     
     .athlete-type-section {
@@ -76,8 +77,8 @@ st.markdown("""
     }
     
     .athlete-type-label {
-        color: #d4a5b0;
-        font-size: 0.85em;
+        color: #e0e0e0;
+        font-size: 0.9em;
         text-transform: uppercase;
         letter-spacing: 1.5px;
         margin-bottom: 10px;
@@ -103,10 +104,11 @@ st.markdown("""
     
     [data-baseweb="tab"] {
         background-color: transparent !important;
-        color: #94a3b8 !important;
+        color: #c0c0c0 !important;
         border-radius: 8px 8px 0 0 !important;
         font-weight: 600 !important;
         padding: 10px 15px !important;
+        font-size: 0.95em !important;
     }
     
     [aria-selected="true"] {
@@ -125,9 +127,9 @@ st.markdown("""
     }
     
     .data-label {
-        color: #cbd5e1;
-        font-size: 0.9em;
-        font-weight: 600;
+        color: #e0e0e0;
+        font-size: 0.95em;
+        font-weight: 700;
     }
     
     .rank-badge {
@@ -167,9 +169,9 @@ st.markdown("""
     }
     
     .data-value {
-        color: #f1f5f9;
-        font-weight: 600;
-        font-size: 1em;
+        color: #f0f0f0;
+        font-weight: 700;
+        font-size: 1.05em;
         margin-top: 4px;
     }
     
@@ -186,9 +188,10 @@ st.markdown("""
         padding: 15px;
         border-radius: 8px;
         margin: 12px 0;
-        color: #d4a5b0;
+        color: #e0e0e0;
         font-size: 0.95em;
         line-height: 1.6;
+        font-weight: 500;
     }
     
     .warning-box {
@@ -197,9 +200,10 @@ st.markdown("""
         padding: 15px;
         border-radius: 8px;
         margin: 12px 0;
-        color: #fcd34d;
+        color: #fce69e;
         font-size: 0.95em;
         line-height: 1.6;
+        font-weight: 500;
     }
     
     .metric-row {
@@ -541,19 +545,19 @@ with tab3:
     }
     
     descriptions = {
-        '垂直跳び': '垂直方向への爆発的パワーの評価。実質測定値より身長×1.30の値＊身長＋腕。簡易測定が可能なので自分の測定値を覚えておき、簡単に測定、比較できるぞ！',
-        'DJ_RSI': '下肢のバネ性能を示す反応筋力指数。どれだけ短い接地時間で、どれだけ力を発揮できたかを示す指標。スプリントでは、最大走速度の向上に寄与する',
-        '立ち幅跳び': '水平方向への爆発的パワー発揮能力。垂直跳びと比べ、水平方向へのパワー発揮が0からのスタートに寄与する',
-        '12段跳び': '連続跳躍による推進力と弾性エネルギーの再利用。SSCの能力と水平方向のパワーの総合評価できる指標',
-        '前投げ': '下肢から上半身への力の伝達、全身を使ったパワー発揮。',
-        '後ろ投げ': '股関節伸展を主体とした全身爆発力。背部を強調したパワー発揮',
-        'SQ_1RM': 'すべてのパワーの土台となる基礎筋力。男子は自身の体重の2倍の重量を、女子は1.5倍はマストで挙上できるようにはなりたい',
-        '懸垂': '上半身の引く筋力および筋持久力、簡易的な筋力の評価にもなる。',
-        'RAST_max_bw': '無酸素運動における最高出力。ATP-CP系のエネルギー産生能力＋スプリント能力の評価',
-        'RAST_min_bw': '疲労状態での出力。解糖系のエネルギー産生能力＋後半スプリント能力の評価になる',
-        'RAST_mean_bw': '無酸素運動を持続するための総合評価',
+        '垂直跳び': 'SSCを伴わない下肢の純粋な爆発的パワー',
+        'DJ_RSI': '下肢のバネ性能を示す反応筋力指数',
+        '立ち幅跳び': '水平方向への爆発的パワー発揮能力',
+        '12段跳び': '連続跳躍による推進力と弾性エネルギーの再利用',
+        '前投げ': '体幹から上半身への力の伝達',
+        '後ろ投げ': '股関節伸展を主体とした全身爆発力',
+        'SQ_1RM': 'すべてのパワーの土台となる基礎筋力',
+        '懸垂': '上半身の引く筋力および筋持久力',
+        'RAST_max_bw': '無酸素運動における最高出力',
+        'RAST_min_bw': '疲労状態での底力',
+        'RAST_mean_bw': '無酸素運動を持続するための総合容量',
         'RAST_drop_bw': 'パワー減少率（低いほど疲労耐性が高い）',
-        'シャトルラン': '有酸素性能力（全身持久力）。ラウンド間での回復力等も有酸素能力に依存するため、スプリンターは最低100があるとよい'
+        'シャトルラン': '有酸素性能力（全身持久力）'
     }
 
     for cat_name, items in categories_ui.items():
