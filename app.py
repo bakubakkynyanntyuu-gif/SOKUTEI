@@ -49,17 +49,36 @@ st.markdown("""
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); box-shadow: 0 8px 24px rgba(166, 52, 70, 0.5); letter-spacing: 0.5px;
     }
     
-    /* タブデザイン（すべて白文字化） */
-    [data-baseweb="tab-list"] { border-bottom: 3px solid rgba(166, 52, 70, 0.5) !important; }
+    /* ＝＝＝ タブデザインの視認性改善 ＝＝＝ */
+    [data-baseweb="tab-list"] { 
+        border-bottom: 3px solid #a63446 !important; 
+        gap: 6px !important; 
+    }
     [data-baseweb="tab"] {
-        background-color: transparent !important; color: #ffffff !important;
-        border-radius: 8px 8px 0 0 !important; font-weight: 700 !important;
-        padding: 10px 15px !important; font-size: 1.0em !important; opacity: 0.7;
+        background-color: rgba(42, 15, 22, 0.9) !important; /* 透過をやめ、暗い背景で塗りつぶす */
+        border: 1px solid rgba(166, 52, 70, 0.5) !important; /* 枠線をつけてボタン風に */
+        border-bottom: none !important;
+        border-radius: 8px 8px 0 0 !important; 
+        padding: 12px 18px !important; 
     }
+    /* タブ内のテキスト色を強制的に上書き（グレーアウト防止） */
+    [data-baseweb="tab"] span, [data-baseweb="tab"] p, [data-baseweb="tab"] div {
+        color: #e2e8f0 !important; /* 選択されていない時もはっきりした白グレー */
+        font-weight: 700 !important;
+        font-size: 1.05em !important;
+    }
+    /* 選択中のタブ */
     [aria-selected="true"] {
-        background: linear-gradient(135deg, #c73a54 0%, #a63446 100%) !important; color: #ffffff !important;
-        box-shadow: 0 -4px 12px rgba(166, 52, 70, 0.4) !important; opacity: 1.0 !important;
+        background: linear-gradient(135deg, #c73a54 0%, #a63446 100%) !important; 
+        border: 1px solid #c73a54 !important;
+        border-bottom: none !important;
+        box-shadow: 0 -4px 12px rgba(166, 52, 70, 0.5) !important; 
     }
+    [aria-selected="true"] span, [aria-selected="true"] p, [aria-selected="true"] div {
+        color: #ffffff !important; /* 選択時は純白 */
+        font-weight: 900 !important;
+    }
+    /* ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝ */
     
     /* 詳細データ・解説テキスト */
     .data-row {
