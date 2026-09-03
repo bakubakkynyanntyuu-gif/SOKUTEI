@@ -7,272 +7,95 @@ import io
 
 st.set_page_config(page_title="コントロールテスト フィードバック", page_icon="🏃", layout="wide")
 
-# カスタムスタイル
 st.markdown("""
     <style>
-    * {
-        margin: 0;
-        padding: 0;
-    }
-    
-    body {
-        background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%);
-        color: #e2e8f0;
-    }
-    
-    [data-testid="stAppViewContainer"] {
-        background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%);
-    }
-    
-    [data-testid="stHeader"] {
-        background-color: transparent;
-    }
+    * { margin: 0; padding: 0; }
+    body { background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%); color: #e2e8f0; }
+    [data-testid="stAppViewContainer"] { background: linear-gradient(135deg, #1a0f1a 0%, #2d1b2e 100%); }
+    [data-testid="stHeader"] { background-color: transparent; }
     
     .main-title {
         background: linear-gradient(135deg, #a63446 0%, #722c46 50%, #4a1a2e 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 2.0em;
-        font-weight: 900;
-        margin-bottom: 5px;
-        text-shadow: 0 4px 20px rgba(166, 52, 70, 0.3);
-        letter-spacing: -0.5px;
+        font-size: 2.0em; font-weight: 900; margin-bottom: 5px;
+        text-shadow: 0 4px 20px rgba(166, 52, 70, 0.3); letter-spacing: -0.5px;
     }
-    
-    .subtitle {
-        color: #f0f0f0;
-        font-size: 1.1em;
-        margin-bottom: 20px;
-        font-weight: 600;
-    }
+    .subtitle { color: #f0f0f0; font-size: 1.1em; margin-bottom: 20px; font-weight: 600; }
     
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, rgba(44, 28, 46, 0.8), rgba(26, 15, 26, 0.8)) !important;
-        border: 2px solid rgba(166, 52, 70, 0.4) !important;
-        border-radius: 12px !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+        border: 2px solid rgba(166, 52, 70, 0.4) !important; border-radius: 12px !important;
+        padding: 12px 16px !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
     }
-    
-    [data-testid="stMetric"] label {
-        color: #e0e0e0 !important;
-        font-size: 0.75em !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.5px !important;
-    }
-    
-    [data-testid="stMetric"] div:nth-child(2) {
-        font-size: 1.0em !important;
-        font-weight: 700 !important;
-        color: #ffffff !important;
-    }
+    [data-testid="stMetric"] label { color: #e0e0e0 !important; font-size: 0.75em !important; font-weight: 700 !important; letter-spacing: 0.5px !important; }
+    [data-testid="stMetric"] div:nth-child(2) { font-size: 1.0em !important; font-weight: 700 !important; color: #ffffff !important; }
     
     .athlete-type-section {
         background: linear-gradient(135deg, rgba(166, 52, 70, 0.15), rgba(114, 44, 70, 0.15));
-        border-left: 5px solid #a63446;
-        padding: 20px;
-        border-radius: 12px;
-        margin: 20px 0;
+        border-left: 5px solid #a63446; padding: 20px; border-radius: 12px; margin: 20px 0;
     }
-    
-    .athlete-type-label {
-        color: #e0e0e0;
-        font-size: 0.9em;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        margin-bottom: 10px;
-        font-weight: 700;
-    }
-    
+    .athlete-type-label { color: #e0e0e0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; font-weight: 700; }
     .athlete-type-badge {
         background: linear-gradient(135deg, #a63446 0%, #722c46 100%);
-        color: #fff;
-        font-size: 2em;
-        font-weight: 900;
-        padding: 18px 30px;
-        border-radius: 12px;
-        display: inline-block;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        box-shadow: 0 8px 24px rgba(166, 52, 70, 0.3);
-        letter-spacing: 0.5px;
+        color: #fff; font-size: 2em; font-weight: 900; padding: 18px 30px;
+        border-radius: 12px; display: inline-block;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); box-shadow: 0 8px 24px rgba(166, 52, 70, 0.3); letter-spacing: 0.5px;
     }
     
-    [data-baseweb="tab-list"] {
-        border-bottom: 3px solid rgba(166, 52, 70, 0.3) !important;
-    }
-    
+    [data-baseweb="tab-list"] { border-bottom: 3px solid rgba(166, 52, 70, 0.3) !important; }
     [data-baseweb="tab"] {
-        background-color: transparent !important;
-        color: #c0c0c0 !important;
-        border-radius: 8px 8px 0 0 !important;
-        font-weight: 600 !important;
-        padding: 10px 15px !important;
-        font-size: 0.95em !important;
+        background-color: transparent !important; color: #c0c0c0 !important;
+        border-radius: 8px 8px 0 0 !important; font-weight: 600 !important;
+        padding: 10px 15px !important; font-size: 0.95em !important;
     }
-    
     [aria-selected="true"] {
-        background: linear-gradient(135deg, #a63446 0%, #722c46 100%) !important;
-        color: #fff !important;
+        background: linear-gradient(135deg, #a63446 0%, #722c46 100%) !important; color: #fff !important;
         box-shadow: 0 -4px 12px rgba(166, 52, 70, 0.3) !important;
     }
     
+    /* 詳細データの視認性向上 */
     .data-row {
-        background: rgba(44, 28, 46, 0.6);
-        padding: 12px;
-        border-radius: 8px;
-        margin: 8px 0;
-        border-left: 4px solid #a63446;
-        border-top: 1px solid rgba(166, 52, 70, 0.3);
+        background: rgba(15, 8, 15, 0.7);
+        padding: 16px; border-radius: 8px; margin: 10px 0;
+        border-left: 4px solid #a63446; border-top: 1px solid rgba(166, 52, 70, 0.4);
     }
-    
-    .data-label {
-        color: #e0e0e0;
-        font-size: 0.95em;
-        font-weight: 700;
+    .data-label { color: #ffffff; font-size: 1.05em; font-weight: 700; letter-spacing: 0.5px; }
+    .data-value { color: #ffffff; font-weight: 800; font-size: 1.15em; margin-left: 8px; }
+    .description-text {
+        color: #f8fafc; font-size: 0.9em; font-weight: 500;
+        margin-top: 8px; line-height: 1.6; opacity: 0.95;
     }
     
     .rank-badge {
-        display: inline-block;
-        font-weight: 900;
-        font-size: 1.2em;
-        padding: 4px 10px;
-        border-radius: 6px;
-        min-width: 40px;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        margin-right: 8px;
+        display: inline-block; font-weight: 900; font-size: 1.2em; padding: 4px 12px;
+        border-radius: 6px; min-width: 45px; text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); margin-right: 12px;
     }
+    .rank-s { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; }
+    .rank-a { background: linear-gradient(135deg, #f87171, #ef4444); color: #fff; }
+    .rank-b { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+    .rank-c { background: linear-gradient(135deg, #4ade80, #22c55e); color: #fff; }
     
-    .rank-s {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: #78350f;
-        font-weight: 900;
+    .info-box, .warning-box {
+        border-left: 4px solid #a63446; padding: 15px; border-radius: 8px; margin: 12px 0;
+        font-size: 0.95em; line-height: 1.6; font-weight: 500;
     }
+    .info-box { background: linear-gradient(135deg, rgba(166, 52, 70, 0.1), rgba(114, 44, 70, 0.1)); color: #e0e0e0; }
+    .warning-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(166, 52, 70, 0.1)); color: #fce69e; }
     
-    .rank-a {
-        background: linear-gradient(135deg, #f87171, #ef4444);
-        color: #fff;
-        font-weight: 900;
+    [data-testid="stSelectbox"] label { color: #ffffff !important; font-weight: bold !important; }
+    [data-testid="stSelectbox"] div, [data-baseweb="select"], [data-baseweb="select"] div { background-color: #ffffff !important; color: #000000 !important; }
+    [data-testid="stExpander"] button { background-color: rgba(44, 28, 46, 0.8) !important; color: #ffffff !important; font-weight: 700 !important; border: 1px solid #a63446 !important; }
+    [data-testid="stExpanderDetails"] { background-color: transparent !important; }
+    
+    /* スマホ画面向けの最適化 */
+    @media (max-width: 768px) {
+        .main-title { font-size: 1.6em; }
+        .athlete-type-badge { font-size: 1.4em; padding: 12px 20px; }
+        [data-testid="stMetric"] { padding: 8px 12px !important; }
     }
-    
-    .rank-b {
-        background: linear-gradient(135deg, #60a5fa, #3b82f6);
-        color: #fff;
-        font-weight: 900;
-    }
-    
-    .rank-c {
-        background: linear-gradient(135deg, #4ade80, #22c55e);
-        color: #fff;
-        font-weight: 900;
-    }
-    
-    .data-value {
-        color: #f0f0f0;
-        font-weight: 700;
-        font-size: 1.05em;
-        margin-top: 4px;
-    }
-    
-    hr {
-        border: none;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(166, 52, 70, 0.3), transparent);
-        margin: 12px 0;
-    }
-    
-    .info-box {
-        background: linear-gradient(135deg, rgba(166, 52, 70, 0.1), rgba(114, 44, 70, 0.1));
-        border-left: 4px solid #a63446;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 12px 0;
-        color: #e0e0e0;
-        font-size: 0.95em;
-        line-height: 1.6;
-        font-weight: 500;
-    }
-    
-    .warning-box {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(166, 52, 70, 0.1));
-        border-left: 4px solid #a63446;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 12px 0;
-        color: #fce69e;
-        font-size: 0.95em;
-        line-height: 1.6;
-        font-weight: 500;
-    }
-    
-    .metric-row {
-        display: flex;
-        gap: 10px;
-    }
-    
-    [data-testid="column"] {
-        gap: 8px;
-    }
-    
-    /* selectboxのスタイル */
-    [data-testid="stSelectbox"] {
-        color: #000000 !important;
-    }
-    
-    [data-testid="stSelectbox"] div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    [data-baseweb="select"] {
-        background-color: #ffffff !important;
-    }
-    
-    [data-baseweb="select"] button {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border-color: #cccccc !important;
-    }
-    
-    [data-baseweb="select"] div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* Expander（展開ボタン）のスタイル */
-    [data-testid="stExpander"] button {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        font-weight: 700 !important;
-        border: 2px solid #a63446 !important;
-    }
-    
-    [data-testid="stExpander"] button:hover {
-        background-color: #f5f5f5 !important;
-    }
-    
-    [data-testid="stExpanderDetails"] {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-    }
-    
-    /* ドロップダウンメニューのスタイル */
-    [data-baseweb="popover"] {
-        background-color: #ffffff !important;
-    }
-    
-    [data-baseweb="menu"] {
-        background-color: #ffffff !important;
-    }
-    
-    [data-baseweb="menu"] li {
-        color: #000000 !important;
-    }
-    
-    [data-baseweb="menu"] li:hover {
-        background-color: #e8e8e8 !important;
-    }
-    
     </style>
 """, unsafe_allow_html=True)
 
@@ -302,28 +125,18 @@ def calc_t_score(val, mean, std):
     return (val - mean) / std * 10 + 50
 
 def get_rank_label(score):
-    if pd.isna(score):
-        return "−"
-    elif score >= 65:
-        return "S"
-    elif score >= 55:
-        return "A"
-    elif score >= 45:
-        return "B"
-    else:
-        return "C"
+    if pd.isna(score): return "−"
+    elif score >= 65: return "S"
+    elif score >= 55: return "A"
+    elif score >= 45: return "B"
+    else: return "C"
 
 def get_rank_class(score):
-    if pd.isna(score):
-        return "rank-badge"
-    elif score >= 65:
-        return "rank-badge rank-s"
-    elif score >= 55:
-        return "rank-badge rank-a"
-    elif score >= 45:
-        return "rank-badge rank-b"
-    else:
-        return "rank-badge rank-c"
+    if pd.isna(score): return "rank-badge"
+    elif score >= 65: return "rank-badge rank-s"
+    elif score >= 55: return "rank-badge rank-a"
+    elif score >= 45: return "rank-badge rank-b"
+    else: return "rank-badge rank-c"
 
 @st.cache_data(ttl=60)
 def load_excel_data(file_path_or_buffer):
@@ -354,7 +167,7 @@ def load_excel_data(file_path_or_buffer):
 
     if '名前' not in df.columns: return df
     if '測定日' not in df.columns:
-        if '���年' in df.columns: df.rename(columns={'学年': '測定日'}, inplace=True)
+        if '学年' in df.columns: df.rename(columns={'学年': '測定日'}, inplace=True)
         elif len(df.columns) > 1: df.rename(columns={df.columns[1]: '測定日'}, inplace=True)
 
     df['測定日'] = pd.to_datetime(df['測定日'], errors='coerce').fillna(pd.to_datetime('2026-04-01')).dt.strftime('%Y-%m-%d')
@@ -372,15 +185,13 @@ def load_excel_data(file_path_or_buffer):
             
     return df
 
-# ヘッダー
 st.markdown("<div class='main-title'>🏃 ATHLETE PERFORMANCE</div>", unsafe_allow_html=True)
 st.markdown("<div class='subtitle'>コントロールテスト測定結果＆パフォーマンス分析</div>", unsafe_allow_html=True)
 
-st.markdown("---")
-
+# サイドバーは管理者向け操作（ファイルアップロード等）のみ残す
 st.sidebar.image("https://img.icons8.com/color/96/000000/running.png", width=64)
-st.sidebar.title("📋 データ入力")
-uploaded_file = st.sidebar.file_uploader("Excelファイルをアップロード", type=["xlsx", "xls"])
+st.sidebar.title("⚙️ 管理メニュー")
+uploaded_file = st.sidebar.file_uploader("Excelデータを更新", type=["xlsx", "xls"])
 excel_file = "KYOSO_SOKUTEI.xlsx"
 
 df = load_excel_data(uploaded_file) if uploaded_file else (load_excel_data(excel_file) if os.path.exists(excel_file) else None)
@@ -388,19 +199,24 @@ if df is None or df.empty or '名前' not in df.columns:
     st.info("📊 Excelファイルをアップロードしてください")
     st.stop()
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("🎯 選手を選択")
-selected_year = st.sidebar.selectbox("入学年度", sorted(df['入学年度'].unique(), reverse=True))
-filtered_df = df[df['入学年度'] == selected_year]
-if filtered_df.empty: st.stop()
+st.markdown("---")
 
+# メイン画面上部で選手を選択（スマホから直接操作可能）
+sel_col1, sel_col2 = st.columns(2)
+with sel_col1:
+    selected_year = st.selectbox("📅 入学年度を選択", sorted(df['入学年度'].unique(), reverse=True))
+
+filtered_df = df[df['入学年度'] == selected_year]
 meas_cols = list(academic_standards['男'].keys())
 valid_df = filtered_df.dropna(subset=meas_cols, how='all')
 
 if valid_df.empty:
+    st.warning("※この年度にはデータ入力済みの選手がいません。")
     st.stop()
 
-selected_name = st.sidebar.selectbox("氏名", valid_df['名前'].dropna().unique())
+with sel_col2:
+    selected_name = st.selectbox("👤 選手を選択", valid_df['名前'].dropna().unique())
+
 player_data = valid_df[valid_df['名前'] == selected_name].sort_values('測定日')
 if player_data.empty: st.stop()
 latest_data = player_data.iloc[-1]
@@ -408,27 +224,15 @@ player_gender = latest_data.get('性別', '男')
 if player_gender not in ['男', '女']: player_gender = '男'
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("📤 エクスポート")
 csv_data = player_data.to_csv(index=False).encode('utf-8')
-st.sidebar.download_button(
-    label="💾 CSVでダウンロード",
-    data=csv_data,
-    file_name=f"{selected_name}_results.csv",
-    mime='text/csv',
-)
+st.sidebar.download_button(label="💾 個人のCSVデータ出力", data=csv_data, file_name=f"{selected_name}_results.csv", mime='text/csv')
 
-# プロフィール
 col1, col2, col3, col4, col5 = st.columns(5)
-with col1:
-    st.metric("ID", latest_data['ID'])
-with col2:
-    st.metric("選手", latest_data.get('名前', '---')[:10])
-with col3:
-    st.metric("性別", player_gender)
-with col4:
-    st.metric("身長", f"{latest_data['身長']:.0f}cm" if pd.notna(latest_data.get('身長')) else "---")
-with col5:
-    st.metric("体重", "−" if player_gender == '女' else f"{latest_data['体重']:.0f}kg" if pd.notna(latest_data.get('体重')) else "---")
+with col1: st.metric("ID", latest_data['ID'])
+with col2: st.metric("選手", latest_data.get('名前', '---')[:10])
+with col3: st.metric("性別", player_gender)
+with col4: st.metric("身長", f"{latest_data['身長']:.0f}cm" if pd.notna(latest_data.get('身長')) else "---")
+with col5: st.metric("体重", "−" if player_gender == '女' else f"{latest_data['体重']:.0f}kg" if pd.notna(latest_data.get('体重')) else "---")
 
 scores = {}
 gender_df = df[df['性別'] == player_gender]
@@ -437,7 +241,6 @@ for key in academic_standards[player_gender].keys():
     if key in latest_data and pd.notna(latest_data[key]):
         t_mean, t_std = gender_df[key].mean(), gender_df[key].std()
         team_t = calc_t_score(latest_data[key], t_mean, t_std)
-        
         a_mean, a_std = academic_standards[player_gender][key]['mean'], academic_standards[player_gender][key]['std']
         acad_t = calc_t_score(latest_data[key], a_mean, a_std)
         scores[key] = (team_t + acad_t) / 2
@@ -536,8 +339,7 @@ with tab1:
                 angularaxis=dict(gridcolor="rgba(166, 52, 70, 0.2)")
             ),
             showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=450,
-            plot_bgcolor='rgba(26, 15, 26, 0.5)',
-            paper_bgcolor='rgba(26, 15, 26, 0.5)',
+            plot_bgcolor='rgba(26, 15, 26, 0.5)', paper_bgcolor='rgba(26, 15, 26, 0.5)',
             font=dict(color='#e2e8f0')
         )
         st.plotly_chart(fig_radar, use_container_width=True)
@@ -582,11 +384,8 @@ with tab2:
         ))
         fig_line.update_layout(
             showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=400,
-            plot_bgcolor='rgba(26, 15, 26, 0.5)',
-            paper_bgcolor='rgba(26, 15, 26, 0.5)',
-            font=dict(color='#e2e8f0'),
-            xaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)'),
-            yaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)')
+            plot_bgcolor='rgba(26, 15, 26, 0.5)', paper_bgcolor='rgba(26, 15, 26, 0.5)',
+            font=dict(color='#e2e8f0'), xaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)'), yaxis=dict(gridcolor='rgba(166, 52, 70, 0.2)')
         )
         st.plotly_chart(fig_line, use_container_width=True)
     else:
@@ -628,10 +427,13 @@ with tab3:
                 rank = get_rank_label(score)
                 rank_class = get_rank_class(score)
                 
+                # HTMLクラスで専用のスタイルを適用し、st.captionを使わない
                 st.markdown(f"""
                     <div class='data-row'>
                         <span class='data-label'>{k}</span><br>
-                        <span class='{rank_class}'>{rank}</span><span class='data-value'>{val_str}</span>
+                        <div style='margin-top: 8px; margin-bottom: 8px;'>
+                            <span class='{rank_class}'>{rank}</span><span class='data-value'>{val_str}</span>
+                        </div>
+                        <div class='description-text'>{descriptions[k]}</div>
                     </div>
                 """, unsafe_allow_html=True)
-                st.caption(descriptions[k])
