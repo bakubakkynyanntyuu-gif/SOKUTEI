@@ -214,6 +214,65 @@ st.markdown("""
     [data-testid="column"] {
         gap: 8px;
     }
+    
+    /* selectboxのスタイル */
+    [data-testid="stSelectbox"] {
+        color: #000000 !important;
+    }
+    
+    [data-testid="stSelectbox"] div {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    [data-baseweb="select"] {
+        background-color: #ffffff !important;
+    }
+    
+    [data-baseweb="select"] button {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #cccccc !important;
+    }
+    
+    [data-baseweb="select"] div {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Expander（展開ボタン）のスタイル */
+    [data-testid="stExpander"] button {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
+        border: 2px solid #a63446 !important;
+    }
+    
+    [data-testid="stExpander"] button:hover {
+        background-color: #f5f5f5 !important;
+    }
+    
+    [data-testid="stExpanderDetails"] {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    /* ドロップダウンメニューのスタイル */
+    [data-baseweb="popover"] {
+        background-color: #ffffff !important;
+    }
+    
+    [data-baseweb="menu"] {
+        background-color: #ffffff !important;
+    }
+    
+    [data-baseweb="menu"] li {
+        color: #000000 !important;
+    }
+    
+    [data-baseweb="menu"] li:hover {
+        background-color: #e8e8e8 !important;
+    }
+    
     </style>
 """, unsafe_allow_html=True)
 
@@ -295,7 +354,7 @@ def load_excel_data(file_path_or_buffer):
 
     if '名前' not in df.columns: return df
     if '測定日' not in df.columns:
-        if '学年' in df.columns: df.rename(columns={'学年': '測定日'}, inplace=True)
+        if '���年' in df.columns: df.rename(columns={'学年': '測定日'}, inplace=True)
         elif len(df.columns) > 1: df.rename(columns={df.columns[1]: '測定日'}, inplace=True)
 
     df['測定日'] = pd.to_datetime(df['測定日'], errors='coerce').fillna(pd.to_datetime('2026-04-01')).dt.strftime('%Y-%m-%d')
