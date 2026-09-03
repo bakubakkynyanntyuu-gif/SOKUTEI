@@ -7,32 +7,6 @@ import io
 
 st.set_page_config(page_title="コントロールテスト フィードバック", page_icon="🏃", layout="wide")
 
-st.markdown("""
-    <style>
-    .main { background-color: #f8f9fa; }
-    div[data-testid="stMetric"] {
-        background-color: #ffffff; border-radius: 12px; padding: 16px 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;
-    }
-    .app-header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        padding: 24px 32px; border-radius: 16px; color: white; margin-bottom: 24px;
-    }
-    .app-header h1 { margin: 0; font-size: 28px; font-weight: 700; color: white; }
-    .stTabs [data-baseweb="tab"] { background-color: #e9ecef; border-radius: 8px 8px 0 0; }
-    .stTabs [aria-selected="true"] { background-color: #ffffff !important; font-weight: bold; }
-    
-    .athlete-type-badge {
-        background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
-        color: #d81b60; padding: 8px 16px; border-radius: 20px;
-        font-weight: bold; font-size: 1.2rem; display: inline-block;
-        margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    hr { margin-top: 0.5em; margin-bottom: 0.5em; border-top: 1px solid #eee; }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- 男女別の学術的基準値（※女子は仮の数値を設定しています。適切な文献値に調整してください） ---
 academic_standards = {
     '男': {
         '垂直跳び': {'mean': 60, 'std': 10}, 'DJ_RSI': {'mean': 2.2, 'std': 0.3},
@@ -58,12 +32,17 @@ def calc_t_score(val, mean, std):
     if pd.isna(val) or std == 0 or pd.isna(std): return None
     return (val - mean) / std * 10 + 50
 
-def get_rank_badge(score):
-    if pd.isna(score): return "<span style='color:#999; font-weight:bold;'>- </span>"
-    if score >= 65: return "<span style='background: linear-gradient(135deg, #FFD700, #FDB931); color: #5c4000; padding:4px 10px; border-radius:6px; font-weight:bold; display:inline-block; width:35px; text-align:center;'>S</span>"
-    elif score >= 55: return "<span style='background:#DC143C; color:white; padding:4px 10px; border-radius:6px; font-weight:bold; display:inline-block; width:35px; text-align:center;'>A</span>"
-    elif score >= 45: return "<span style='background:#4169E1; color:white; padding:4px 10px; border-radius:6px; font-weight:bold; display:inline-block; width:35px; text-align:center;'>B</span>"
-    else: return "<span style='background:#2E8B57; color:white; padding:4px 10px; border-radius:6px; font-weight:bold; display:inline-block; width:35px; text-align:center;'>C</span>"
+def get_rank_label(score):
+    if pd.isna(score):
+        return "−"
+    elif score >= 65:
+        return "S"
+    elif score >= 55:
+        return "A"
+    elif score >= 45:
+        return "B"
+    else:
+        return "C"
 
 @st.cache_data(ttl=60)
 def load_excel_data(file_path_or_buffer):
@@ -112,6 +91,8 @@ def load_excel_data(file_path_or_buffer):
             
     return df
 
+st.title("🏃 コントロールテスト フィードバック")
+
 st.sidebar.image("https://img.icons8.com/color/96/000000/running.png", width=64)
 st.sidebar.title("コントロールテスト")
 uploaded_file = st.sidebar.file_uploader("Excelデータをアップロード", type=["xlsx", "xls"])
@@ -150,11 +131,9 @@ latest_data = player_data.iloc[-1]
 player_gender = latest_data.get('性別', '男')
 if player_gender not in ['男', '女']: player_gender = '男'
 
-# --- 共有・保存メニュー ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("📤 共有・保存")
 
-# CSVデータエクスポート機能
 csv_data = player_data.to_csv(index=False).encode('utf-8')
 st.sidebar.download_button(
     label="📥 この選手のデータをCSVで保存",
@@ -163,12 +142,7 @@ st.sidebar.download_button(
     mime='text/csv',
 )
 
-st.markdown("""
-    <div class="app-header">
-        <h1>ATHLETE PERFORMANCE DASHBOARD</h1>
-        <p>コントロールテスト測定結果 & パフォーマンス分析</p>
-    </div>
-""", unsafe_allow_html=True)
+st.header("ATHLETE PERFORMANCE DASHBOARD")
 
 col1, col2, col3, col4, col5 = st.columns(5)
 col1.metric("選手 ID", latest_data['ID'])
@@ -176,11 +150,9 @@ col2.metric("氏名", f"{latest_data.get('名前', '---')} ({player_gender})")
 col3.metric("最新測定日", latest_data['測定日'])
 col4.metric("身長", f"{latest_data['身長']:.1f} cm" if pd.notna(latest_data.get('身長')) else "---")
 col5.metric("体重", "非表示" if player_gender == '女' else f"{latest_data['体重']:.1f} kg" if pd.notna(latest_data.get('体重')) else "---")
-st.markdown("<br>", unsafe_allow_html=True)
 
-# 1. 個別項目のTスコア算出（男女別計算）
 scores = {}
-gender_df = df[df['性別'] == player_gender] # 男女で母集団を分ける
+gender_df = df[df['性別'] == player_gender]
 
 for key in academic_standards[player_gender].keys():
     if key in latest_data and pd.notna(latest_data[key]):
@@ -192,7 +164,6 @@ for key in academic_standards[player_gender].keys():
         scores[key] = (team_t + acad_t) / 2
     else: scores[key] = None
 
-# 2. 7軸の重み付け定義
 axis_defs = {
     '水平パワー': [('立ち幅跳び', 0.7), ('12段跳び', 0.3)],
     '垂直パワー': [('垂直跳び', 0.7), ('DJ_RSI', 0.3)],
@@ -203,7 +174,6 @@ axis_defs = {
     '有酸素能力': [('シャトルラン', 1.0)]
 }
 
-# 3. 未測定を除外した100%計算
 radar_dict = {}
 radar_symbols_dict = {}
 
@@ -224,7 +194,6 @@ for axis, components in axis_defs.items():
         radar_dict[axis] = final_score
         radar_symbols_dict[axis] = 'circle'
 
-# 4. アスリートタイプ判定ロジック
 name_map = {
     '垂直パワー': '垂直ジャンプ', '水平パワー': '水平技術', 
     '全身パワー': 'パワー発揮', 'SSC': 'バネ', '基礎筋力': '最高出力',
@@ -286,20 +255,20 @@ with tab1:
             polar=dict(radialaxis=dict(visible=True, range=[20, 80], gridcolor="#e9ecef"), angularaxis=dict(gridcolor="#e9ecef")),
             showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=400
         )
-        st.plotly_chart(fig_radar, width='stretch')
-        st.caption("※未測定により計算できない軸はスコア50として「<span style='color:#DC143C; font-weight:bold;'>✕</span>」印で表示しています。", unsafe_allow_html=True)
+        st.plotly_chart(fig_radar, use_container_width=True)
+        st.caption("未測定により計算できない軸はスコア50として「✕」印で表示しています。")
 
     with col_info:
-        st.markdown(f"#### 🧬 あなたのアスリートタイプ")
-        st.markdown(f"<div class='athlete-type-badge'>⭐ {athlete_type}</div>", unsafe_allow_html=True)
+        st.subheader("🧬 あなたのアスリートタイプ")
+        st.write(f"**⭐ {athlete_type}**")
         
-        st.markdown("#### 💬 自動分析コメント")
+        st.subheader("💬 自動分析コメント")
         if "データ不足" in athlete_type:
             st.warning("有効なデータが不足しています。各能力の傾向を分析するため、より多くの測定項目を入力してください。")
         elif "オールラウンダー" in athlete_type:
-            st.info("すべての項目において弱点がなく、非常にバランスの取れた能力を持っています。今のバランスを維持しつつ、各種目の専門的なスキルを磨くことで更なる成長が期待できます。")
+            st.info("すべての項目において弱点がなく、非常にバランスの取れた能力を持っています。")
         else:
-            st.info(f"あなたの最大の武器は【{top1_cat}】です。一方で、現在のボトルネックとなっているのは【{worst_cat}】（スコア: {worst_score:.1f}）です。ここを改善することで、全体的なパフォーマンスアップにつながります。")
+            st.info(f"最大の武器は【{top1_cat}】です。ボトルネックは【{worst_cat}】（スコア: {worst_score:.1f}）です。")
 
 with tab2:
     metric_options = list(academic_standards['男'].keys())
@@ -311,13 +280,13 @@ with tab2:
             text=[f"{v:.1f}" if pd.notna(v) else "" for v in player_data[selected_metric]], textposition="top center",
             line=dict(color='#2a5298', width=3), marker=dict(size=10, color='#1e3c72')
         ))
-        st.plotly_chart(fig_line, width='stretch')
+        st.plotly_chart(fig_line, use_container_width=True)
     else:
-        st.info("※データが1件のみのため、または項目が存在しないためグラフは表示されません。")
+        st.info("データが1件のみのため、グラフは表示されません。")
 
 with tab3:
-    st.subheader("今回テストの測定データ詳細 ＆ 項目解説")
-    st.markdown("Sランク(金)：65以上 ｜ Aランク(赤)：55以上 ｜ Bランク(青)：45以上 ｜ Cランク(緑)：45未満")
+    st.subheader("測定データ詳細 & 項目解説")
+    st.markdown("Sランク：65以上 | Aランク：55以上 | Bランク：45以上 | Cランク：45未満")
     
     categories_ui = {
         "🚀 跳躍・下肢パワー（垂直・水平・SSC）": ['垂直跳び', 'DJ_RSI', '立ち幅跳び', '12段跳び'],
@@ -328,19 +297,19 @@ with tab3:
     }
     
     descriptions = {
-        '垂直跳び': 'SSC（ストレッチ・ショートニング・サイクル）を伴わない、下肢の純粋な爆発的パワー（コンセントリック収縮）を評価します。',
-        'DJ_RSI': '短い接地時間でどれだけ高く跳べるかを示す反応筋力指数（RSI）。下肢のバネの硬さ（スティッフネス）とSSC能力を表します。',
-        '立ち幅跳び': '下肢の水平方向への爆発的パワー発揮能力。スプリントにおけるスタートダッシュや初期加速の能力と強い相関があります。',
-        '12段跳び': '連続した跳躍による水平方向への推進力と、接地時の弾性エネルギーをロスなく再利用する能力を評価します。',
-        '前投げ': 'メディシンボールを前方に投げることで、体幹から上半身への力の伝達と、全身の連動性（屈曲方向）を評価します。',
-        '後ろ投げ': '股関節の力強い伸展を主体とした、全身の爆発的な伸展パワーと連動性（伸展方向）を評価します。',
-        'SQ_1RM': '下肢の最大筋力（スクワット1回最大挙上重量）。すべての爆発的パワーの土台となる基礎的な力（フォース）の大きさです。',
-        '懸垂': '上半身の引く筋力および筋持久力。走動作における姿勢制御や力強い腕振りに貢献します。',
-        'RAST_max_bw': 'RASTでの最大パワー（体重比）。無酸素運動における絶対的な最高出力（瞬発力）を示します。',
-        'RAST_min_bw': 'RASTでの最小パワー（体重比）。疲労状態に陥った際の「底力・粘り強さ」を示します。',
-        'RAST_mean_bw': 'RASTでの平均パワー（体重比）。無酸素運動を持続するための総合的な容量（キャパシティ）を示します。',
-        'RAST_drop_bw': 'RASTでのパワー減少率。数値が低いほど、無酸素運動において疲労に対する耐性が高くタフであることを示します。',
-        'シャトルラン': '有酸素性能力（全身持久力）。質の高い練習の反復能力や、試合後半での回復力に直結します。'
+        '垂直跳び': 'SSCを伴わない、下肢の純粋な爆発的パワーを評価します。',
+        'DJ_RSI': '短い接地時間での反応筋力指数。下肢のバネ性能を表します。',
+        '立ち幅跳び': '下肢の水平方向への爆発的パワー発揮能力。スプリント能力と相関があります。',
+        '12段跳び': '連続跳躍による水平推進力と弾性エネルギーの再利用能力を評価します。',
+        '前投げ': '体幹から上半身への力の伝達と全身連動性を評価します。',
+        '後ろ投げ': '股関節伸展を主体とした全身爆発的パワーを評価します。',
+        'SQ_1RM': '下肢の最大筋力。すべてのパワーの土台となる基礎的な力の大きさです。',
+        '懸垂': '上半身の引く筋力および筋持久力。',
+        'RAST_max_bw': '無酸素運動における最高出力。',
+        'RAST_min_bw': '疲労状態での底力。',
+        'RAST_mean_bw': '無酸素運動を持続するための総合容量。',
+        'RAST_drop_bw': 'パワー減少率。低いほど疲労耐性が高い。',
+        'シャトルラン': '有酸素性能力（全身持久力）。'
     }
 
     for cat_name, items in categories_ui.items():
@@ -349,7 +318,7 @@ with tab3:
                 val = latest_data.get(k, np.nan)
                 val_str = f"{val:.2f}" if pd.notna(val) else "未測定"
                 score = scores.get(k, np.nan)
+                rank = get_rank_label(score)
                 
-                st.markdown(f"{get_rank_badge(score)} &nbsp; **{k}** : `{val_str}`", unsafe_allow_html=True)
+                st.write(f"**[{rank}] {k}** : {val_str}")
                 st.caption(descriptions[k])
-                st.markdown("<hr>", unsafe_allow_html=True)
