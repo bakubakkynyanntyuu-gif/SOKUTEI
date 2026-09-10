@@ -55,19 +55,17 @@ st.markdown("""
         gap: 6px !important; 
     }
     [data-baseweb="tab"] {
-        background-color: rgba(42, 15, 22, 0.9) !important; /* 透過をやめ、暗い背景で塗りつぶす */
-        border: 1px solid rgba(166, 52, 70, 0.5) !important; /* 枠線をつけてボタン風に */
+        background-color: rgba(42, 15, 22, 0.9) !important;
+        border: 1px solid rgba(166, 52, 70, 0.5) !important;
         border-bottom: none !important;
         border-radius: 8px 8px 0 0 !important; 
         padding: 12px 18px !important; 
     }
-    /* タブ内のテキスト色を強制的に上書き（グレーアウト防止） */
     [data-baseweb="tab"] span, [data-baseweb="tab"] p, [data-baseweb="tab"] div {
-        color: #e2e8f0 !important; /* 選択されていない時もはっきりした白グレー */
+        color: #e2e8f0 !important;
         font-weight: 700 !important;
         font-size: 1.05em !important;
     }
-    /* 選択中のタブ */
     [aria-selected="true"] {
         background: linear-gradient(135deg, #c73a54 0%, #a63446 100%) !important; 
         border: 1px solid #c73a54 !important;
@@ -75,7 +73,7 @@ st.markdown("""
         box-shadow: 0 -4px 12px rgba(166, 52, 70, 0.5) !important; 
     }
     [aria-selected="true"] span, [aria-selected="true"] p, [aria-selected="true"] div {
-        color: #ffffff !important; /* 選択時は純白 */
+        color: #ffffff !important;
         font-weight: 900 !important;
     }
     /* ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝ */
@@ -119,6 +117,18 @@ st.markdown("""
     [data-testid="stExpander"] button { background-color: rgba(74, 25, 40, 0.8) !important; color: #ffffff !important; font-weight: 800 !important; border: 1px solid #c73a54 !important; }
     [data-testid="stExpanderDetails"] { background-color: transparent !important; }
     
+    /* 隠しアイコンのアニメーション */
+    .easter-egg-icon {
+        transition: all 0.3s ease;
+        opacity: 0.5;
+        cursor: pointer;
+    }
+    .easter-egg-icon:hover {
+        transform: scale(1.2) rotate(10deg);
+        opacity: 1.0;
+        filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+    }
+    
     /* スマホ画面向けの最適化 */
     @media (max-width: 768px) {
         .main-title { font-size: 1.6em; }
@@ -147,6 +157,24 @@ academic_standards = {
         'RAST_mean_bw': {'mean': 7.2, 'std': 1.0}, 'RAST_drop_bw': {'mean': 4.5, 'std': 1.0},
         'シャトルラン': {'mean': 80, 'std': 8}
     }
+}
+
+# ！！！ここで外れ値（異常値）の基準を設定します！！！
+# [下限値, 上限値] を設定してください。この範囲から外れた数値は無効（未測定扱い）になります。
+outlier_limits = {
+    '垂直跳び': [10, 120],     # 10cm未満、120cm超えは除外
+    'DJ_RSI': [0.5, 5.0],      
+    '立ち幅跳び': [1.0, 4.0],
+    '12段跳び': [15, 50],
+    '前投げ': [3, 30],
+    '後ろ投げ': [3, 30],
+    'SQ_1RM': [20, 300],
+    '懸垂': [0, 60],
+    'RAST_max_bw': [2.0, 20.0],
+    'RAST_min_bw': [1.0, 15.0],
+    'RAST_mean_bw': [1.5, 18.0],
+    'RAST_drop_bw': [0.0, 30.0],
+    'シャトルラン': [10, 200]
 }
 
 def calc_t_score(val, mean, std):
@@ -211,6 +239,12 @@ def load_excel_data(file_path_or_buffer):
         if col in df.columns: 
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].replace(0, np.nan)
+            
+            # --- 極端な値（外れ値）の除外処理 ---
+            if col in outlier_limits:
+                min_limit, max_limit = outlier_limits[col]
+                # 設定された下限より小さい、または上限より大きい場合は NaN（未測定）にする
+                df.loc[(df[col] < min_limit) | (df[col] > max_limit), col] = np.nan
             
     return df
 
@@ -464,3 +498,13 @@ with tab3:
                         <div class='description-text'>{descriptions[k]}</div>
                     </div>
                 """, unsafe_allow_html=True)
+
+
+# --- 隠しアイコン（イースターエッグ） ---
+st.markdown("""
+<div style="text-align: center; margin-top: 80px; margin-bottom: 30px;">
+    <a href="https://www.bing.com/ck/a?!&&p=96feebe4b974b6c64c0d4591889e71bccc9d1d9a561f7139a1832c839e97fc6eJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%82%a6%e3%82%b5%e3%82%a4%e3%83%b3%e3%83%9c%e3%83%ab%e3%83%88+%e4%b8%96%e7%95%8c%e8%a8%98%e9%8c%b2&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUE2JUUzJTgyJUI1JUUzJTgyJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgzJTlDJUUzJTgzJUFCJUUzJTgzJTg4" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.icons8.com/color/96/000000/running.png" class="easter-egg-icon" alt="Running Icon" width="48">
+    </a>
+</div>
+""", unsafe_allow_html=True)
