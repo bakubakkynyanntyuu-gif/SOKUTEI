@@ -4,6 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 import os
 import io
+import random
 
 st.set_page_config(page_title="コントロールテスト フィードバック", page_icon="🏃", layout="wide")
 
@@ -159,10 +160,8 @@ academic_standards = {
     }
 }
 
-# ！！！ここで外れ値（異常値）の基準を設定します！！！
-# [下限値, 上限値] を設定してください。この範囲から外れた数値は無効（未測定扱い）になります。
 outlier_limits = {
-    '垂直跳び': [10, 120],     # 10cm未満、120cm超えは除外
+    '垂直跳び': [10, 120],     
     'DJ_RSI': [0.5, 5.0],      
     '立ち幅跳び': [1.0, 4.0],
     '12段跳び': [15, 50],
@@ -240,10 +239,8 @@ def load_excel_data(file_path_or_buffer):
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].replace(0, np.nan)
             
-            # --- 極端な値（外れ値）の除外処理 ---
             if col in outlier_limits:
                 min_limit, max_limit = outlier_limits[col]
-                # 設定された下限より小さい、または上限より大きい場合は NaN（未測定）にする
                 df.loc[(df[col] < min_limit) | (df[col] > max_limit), col] = np.nan
             
     return df
@@ -500,10 +497,21 @@ with tab3:
                 """, unsafe_allow_html=True)
 
 
-# --- 隠しアイコン（イースターエッグ） ---
-st.markdown("""
+# --- 隠しアイコン（イースターエッグ）ランダムガチャ ---
+easter_egg_links = [
+    "https://www.bing.com/ck/a?!&&p=96feebe4b974b6c64c0d4591889e71bccc9d1d9a561f7139a1832c839e97fc6eJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%82%a6%e3%82%b5%e3%82%a4%e3%83%b3%e3%83%9c%e3%83%ab%e3%83%88+%e4%b8%96%e7%95%8c%e8%a8%98%e9%8c%b2&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUE2JUUzJTgyJUI1JUUzJTgyJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgzJTlDJUUzJTgzJUFCJUUzJTgzJTg4", # ボルト
+    "https://www.bing.com/ck/a?!&&p=16275fb98b9cfcb6c4bdc03d1b8a1cd8d69bd03aa6c504b001cba6ee9d7bb2b5JmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e7%b9%94%e7%94%b0%e5%b9%b9%e5%a4%ab&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUU3JUI5JTk0JUU3JTk0JUIwJUU1JUI5JUI5JUU5JTlCJTg0", # 織田幹夫
+    "https://www.bing.com/ck/a?!&&p=daba5aed31aa25dd67111b311df389b9778e65b54b9dc65fc4c81b51d4e0b882JmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%83%a4%e3%83%b3%e3%82%bc%e3%83%ac%e3%82%ba%e3%83%8b%e3%83%bc&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgzJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgyJUJDJUUzJTgzJUFDJUUzJTgyJUJBJUUzJTgzJThCJUUzJTgzJUJD", # ヤン・ゼレズニー
+    "https://www.bing.com/ck/a?!&&p=fb73dddea5344142ab1c8b755c2259460f206c57df6df00aa6aea5fe9a569c5aJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%83%87%e3%83%a5%e3%83%97%e3%83%a9%e3%83%b3%e3%83%86%e3%82%a3%e3%82%b9&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUEyJUUzJTgzJUFCJUUzJTgzJTlFJUUzJTgzJUIzJUUzJTgzJTg5JUUzJTgzJUJCJUUzJTgzJTg3JUUzJTgzJUE1JUUzJTgzJTk3JUUzJTgzJUE5JUUzJTgzJUIzJUUzJTgzJTg2JUUzJTgyJUEzJUUzJTgyJUI5", # デュプランティス
+    "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A7%E3%82%A4%E3%83%89%E3%83%BB%E3%83%90%E3%83%B3%E3%83%8B%E3%83%BC%E3%82%AD%E3%83%AB%E3%82%AF" # ウェイド・バンニーキルク
+]
+
+# ランダムに1つ選択
+selected_link = random.choice(easter_egg_links)
+
+st.markdown(f"""
 <div style="text-align: center; margin-top: 80px; margin-bottom: 30px;">
-    <a href="https://www.bing.com/ck/a?!&&p=96feebe4b974b6c64c0d4591889e71bccc9d1d9a561f7139a1832c839e97fc6eJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%82%a6%e3%82%b5%e3%82%a4%e3%83%b3%e3%83%9c%e3%83%ab%e3%83%88+%e4%b8%96%e7%95%8c%e8%a8%98%e9%8c%b2&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUE2JUUzJTgyJUI1JUUzJTgyJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgzJTlDJUUzJTgzJUFCJUUzJTgzJTg4" target="_blank" rel="noopener noreferrer">
+    <a href="{selected_link}" target="_blank" rel="noopener noreferrer">
         <img src="https://img.icons8.com/color/96/000000/running.png" class="easter-egg-icon" alt="Running Icon" width="48">
     </a>
 </div>
