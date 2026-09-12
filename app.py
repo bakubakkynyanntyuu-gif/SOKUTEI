@@ -92,6 +92,14 @@ st.markdown("""
         margin-top: 10px; line-height: 1.6;
     }
     
+    /* あと〇〇でランクアップのヒント */
+    .next-rank-hint {
+        font-size: 0.85em !important;
+        color: #9ca3af !important;
+        margin-bottom: 8px;
+        font-weight: 600 !important;
+    }
+    
     /* ランクバッジ */
     .rank-badge {
         display: inline-block; font-weight: 900; font-size: 1.2em; padding: 4px 12px;
@@ -113,8 +121,8 @@ st.markdown("""
     .info-box { background: linear-gradient(135deg, rgba(166, 52, 70, 0.2), rgba(114, 44, 70, 0.2)); }
     .warning-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(166, 52, 70, 0.2)); }
     
-    /* UIパーツ（プルダウン・ボタン・スライダー） */
-    [data-testid="stSelectbox"] label, [data-testid="stRadio"] label, [data-testid="stSlider"] label { color: #ffffff !important; font-weight: 800 !important; }
+    /* UIパーツ（プルダウン・ボタン） */
+    [data-testid="stSelectbox"] label, [data-testid="stRadio"] label { color: #ffffff !important; font-weight: 800 !important; }
     [data-testid="stSelectbox"] div, [data-baseweb="select"], [data-baseweb="select"] div { background-color: #ffffff !important; color: #000000 !important; font-weight: 700 !important; }
     [data-testid="stExpander"] button { background-color: rgba(74, 25, 40, 0.8) !important; color: #ffffff !important; font-weight: 800 !important; border: 1px solid #c73a54 !important; }
     [data-testid="stExpanderDetails"] { background-color: transparent !important; }
@@ -183,7 +191,7 @@ outlier_limits = {
     'シャトルラン': [10, 200]
 }
 
-# --- 共通計算ロジック（関数化） ---
+# --- 共通計算ロジック ---
 def calc_t_score(val, mean, std):
     if pd.isna(val) or std == 0 or pd.isna(std): return None
     return (val - mean) / std * 10 + 50
@@ -269,7 +277,7 @@ def get_athlete_info(radar_dict, radar_symbols_dict):
         
     return athlete_type, top1_cat, worst_cat, worst_score
 
-# --- ランク判定ロジック ---
+# --- ランク判定＆逆算ロジック ---
 def get_rank_label(score, val, acad_mean, acad_std, is_lower_better=False):
     if pd.isna(score) or pd.isna(val): return "−"
     if is_lower_better:
@@ -299,6 +307,39 @@ def get_rank_class(score, val, acad_mean, acad_std, is_lower_better=False):
         elif score >= 55 and val >= acad_mean: return "rank-badge rank-a"
         elif score >= 45: return "rank-badge rank-b"
         else: return "rank-badge rank-c"
+
+def get_next_rank_target(current_rank, t_mean, t_std, a_mean, a_std, is_lower_better=False):
+    if current_rank in ["W", "−"] or pd.isna(t_mean) or pd.isna(t_std) or t_std == 0 or a_std == 0:
+        return None
+        
+    next_rank_req_score = 0
+    next_rank_req_val = None
+    
+    if current_rank == "S":
+        next_rank_req_score = 67
+        next_rank_req_val = a_mean - 2 * a_std if is_lower_better else a_mean + 2 * a_std
+    elif current_rank == "A":
+        next_rank_req_score = 62
+        next_rank_req_val = a_mean - 1 * a_std if is_lower_better else a_mean + 1 * a_std
+    elif current_rank == "B":
+        next_rank_req_score = 55
+        next_rank_req_val = a_mean
+    elif current_rank == "C":
+        next_rank_req_score = 45
+        
+    # スコア（偏差値）から必要な値を逆算
+    val_from_score = ((next_rank_req_score - 50) / 5 + (t_mean / t_std + a_mean / a_std)) / (1 / t_std + 1 / a_std)
+        
+    if next_rank_req_val is not None:
+        if is_lower_better:
+            target_val = min(val_from_score, next_rank_req_val)
+        else:
+            target_val = max(val_from_score, next_rank_req_val)
+    else:
+        target_val = val_from_score
+        
+    return target_val
+
 
 @st.cache_data(ttl=60)
 def load_excel_data(file_path_or_buffer):
@@ -422,8 +463,8 @@ radar_symbols_closed = radar_symbols + [radar_symbols[0]]
 marker_colors = ['#ef4444' if s == 'x' else '#c73a54' for s in radar_symbols_closed]
 marker_sizes = [12 if s == 'x' else 8 for s in radar_symbols_closed]
 
-# 4つのタブを生成（シミュレーターを追加）
-tab1, tab2, tab3, tab4 = st.tabs(["📊 レーダーチャート", "📈 推移グラフ", "📋 詳細データ", "🎮 シミュレーター"])
+# シミュレーターを削除し、3つのタブに戻す
+tab1, tab2, tab3 = st.tabs(["📊 レーダーチャート", "📈 推移グラフ", "📋 詳細データ"])
 
 with tab1:
     col_chart, col_info = st.columns([3, 2])
@@ -557,94 +598,38 @@ with tab3:
                 a_std = academic_standards[player_gender][k]['std']
                 is_lower = ('減少率' in k)
                 
+                # 同性別・同種目の平均と標準偏差を取得
+                t_mean = gender_df[k].mean()
+                t_std = gender_df[k].std()
+                
                 rank = get_rank_label(score, val, a_mean, a_std, is_lower)
                 rank_class = get_rank_class(score, val, a_mean, a_std, is_lower)
+                
+                # 🌟 次のランクアップまでの差分を計算
+                hint_html = ""
+                target_val = get_next_rank_target(rank, t_mean, t_std, a_mean, a_std, is_lower)
+                
+                if target_val is not None and pd.notna(val):
+                    diff = target_val - val
+                    diff_str = f"{abs(diff):.3f}" if k == '幅跳び/下肢長' else f"{abs(diff):.2f}"
+                    
+                    if is_lower:
+                        if diff < 0:
+                            hint_html = f"<div class='next-rank-hint'>✨ あと {diff_str} 縮めればワンランクアップ！</div>"
+                    else:
+                        if diff > 0:
+                            hint_html = f"<div class='next-rank-hint'>✨ あと {diff_str} 伸ばせばワンランクアップ！</div>"
                 
                 st.markdown(f"""
                     <div class='data-row'>
                         <span class='data-label'>{k}</span><br>
-                        <div style='margin-top: 8px; margin-bottom: 8px;'>
+                        <div style='margin-top: 8px; margin-bottom: 4px;'>
                             <span class='{rank_class}'>{rank}</span><span class='data-value'>{val_str}</span>
                         </div>
+                        {hint_html}
                         <div class='description-text'>{descriptions[k]}</div>
                     </div>
                 """, unsafe_allow_html=True)
-
-# 🌟シミュレータータブ
-with tab4:
-    st.markdown("### 🎮 タラレバ・シミュレーター")
-    st.markdown("スライダーを動かして「**もしこの能力が伸びたら？**」をシミュレーションしてみよう！")
-    
-    sim_data = latest_data.copy()
-    
-    # 項目を3列で並べる
-    cols = st.columns(3)
-    idx = 0
-    for key in academic_standards[player_gender].keys():
-        if key in outlier_limits:
-            col = cols[idx % 3]
-            current_val = latest_data.get(key, np.nan)
-            if pd.isna(current_val):
-                current_val = academic_standards[player_gender][key]['mean']
-            
-            min_v, max_v = outlier_limits[key]
-            current_val = max(min_v, min(max_v, current_val)) # はみ出し防止
-            
-            if key == '幅跳び/下肢長': step = 0.001
-            elif key in ['スクワット/体重', 'DJ_RSI']: step = 0.05
-            elif 'RAST' in key or '減少率' in key: step = 0.1
-            else: step = 1.0
-                
-            sim_val = col.slider(key, float(min_v), float(max_v), float(current_val), step=float(step), key=f"sim_{key}")
-            sim_data[key] = sim_val
-            idx += 1
-            
-    # シミュレーション結果の計算
-    sim_scores = get_scores(sim_data, player_gender, gender_df)
-    sim_radar, sim_symbols = get_radar_data(sim_scores)
-    sim_type, sim_top1, sim_worst, sim_worst_score = get_athlete_info(sim_radar, sim_symbols)
-    
-    st.markdown("---")
-    sim_col1, sim_col2 = st.columns([3, 2])
-    with sim_col1:
-        sim_values = list(sim_radar.values())
-        sim_values_closed = sim_values + [sim_values[0]]
-        sim_syms = list(sim_symbols.values())
-        sim_syms_closed = sim_syms + [sim_syms[0]]
-        # シミュレーター用の特別なカラー（緑系）
-        sim_colors = ['#ef4444' if s == 'x' else '#10b981' for s in sim_syms_closed]
-        
-        fig_sim = go.Figure(data=go.Scatterpolar(
-            r=sim_values_closed, theta=radar_categories_closed, fill='toself',
-            fillcolor='rgba(16, 185, 129, 0.3)', line=dict(color='#10b981', width=3), 
-            mode='lines+markers', marker=dict(symbol=sim_syms_closed, size=8, color=sim_colors)
-        ))
-        fig_sim.update_layout(
-            polar=dict(
-                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(255, 255, 255, 0.15)"),
-                angularaxis=dict(gridcolor="rgba(255, 255, 255, 0.15)")
-            ),
-            showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=400,
-            plot_bgcolor='rgba(0, 0, 0, 0)', paper_bgcolor='rgba(0, 0, 0, 0)',
-            font=dict(color='#ffffff', size=13)
-        )
-        st.plotly_chart(fig_sim, use_container_width=True)
-        
-    with sim_col2:
-        st.markdown("""
-            <div class='athlete-type-section' style='border-left: 5px solid #10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 78, 59, 0.25));'>
-                <div class='athlete-type-label' style='color: #a7f3d0;'>シミュレーション後のタイプ</div>
-                <div class='athlete-type-badge' style='background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);'>⭐ """ + str(sim_type) + """</div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        if sim_type and "データ不足" not in sim_type and "オールラウンダー" not in sim_type:
-            st.markdown(f"""
-                <div class='info-box' style='border-left: 5px solid #10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 78, 59, 0.2));'>
-                💪 <strong>最大の武器</strong>：{sim_top1}<br>
-                ⚠️ <strong>ボトルネック</strong>：{sim_worst} (スコア: {sim_worst_score:.1f})
-                </div>
-            """, unsafe_allow_html=True)
 
 
 # --- 隠しアイコン（イースターエッグ）ランダムガチャ ---
