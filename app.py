@@ -149,8 +149,8 @@ academic_standards = {
         '前投げ': {'mean': 12, 'std': 1.5}, '後ろ投げ': {'mean': 13, 'std': 1.5},
         'SQ_1RM': {'mean': 120, 'std': 20}, '懸垂': {'mean': 12, 'std': 4},
         'スクワット/体重': {'mean': 2.0, 'std': 0.3}, 
-        'RAST_max_bw': {'mean': 14.0, 'std': 1.2}, 'RAST_min_bw': {'mean': 7.0, 'std': 1.0},
-        'RAST_mean_bw': {'mean': 9.5, 'std': 1.0}, '減少率/SEC': {'mean': 4.0, 'std': 1.0}, # 名前変更
+        'RAST_max_bw': {'mean': 14.0, 'std': 1.2}, 'RAST_min_bw': {'mean': 9.0, 'std': 1.0},
+        'RAST_mean_bw': {'mean': 11.0, 'std': 1.0}, '減少率/SEC': {'mean': 4.0, 'std': 1.0}, # 名前変更
         'シャトルラン': {'mean': 100, 'std': 10}
     },
     '女': {
@@ -160,8 +160,8 @@ academic_standards = {
         '前投げ': {'mean': 8, 'std': 1.5}, '後ろ投げ': {'mean': 9, 'std': 1.5},
         'SQ_1RM': {'mean': 80, 'std': 15}, '懸垂': {'mean': 5, 'std': 3},
         'スクワット/体重': {'mean': 1.5, 'std': 0.2}, # ← 仮の数値
-        'RAST_max_bw': {'mean': 10, 'std': 1.0}, 'RAST_min_bw': {'mean': 6.0, 'std': 1.0},
-        'RAST_mean_bw': {'mean': 8.2, 'std': 1.0}, '減少率/SEC': {'mean': 4.5, 'std': 1.0}, # 名前変更
+        'RAST_max_bw': {'mean': 10, 'std': 1.0}, 'RAST_min_bw': {'mean': 8.0, 'std': 1.0},
+        'RAST_mean_bw': {'mean': 9.0, 'std': 1.0}, '減少率/SEC': {'mean': 4.5, 'std': 1.0}, # 名前変更
         'シャトルラン': {'mean': 80, 'std': 8}
     }
 }
