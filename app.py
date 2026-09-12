@@ -192,14 +192,14 @@ def calc_t_score(val, mean, std):
 def get_rank_label(score, val, acad_mean, acad_std, is_lower_better=False):
     if pd.isna(score) or pd.isna(val): return "−"
     if is_lower_better:
-        if score >= 65 and val <= acad_mean - 2 * acad_std: return "W"
-        elif score >= 60 and val <= acad_mean - 1 * acad_std: return "S"
+        if score >= 67 and val <= acad_mean - 2 * acad_std: return "W"
+        elif score >= 62 and val <= acad_mean - 1 * acad_std: return "S"
         elif score >= 55 and val <= acad_mean: return "A"
         elif score >= 45: return "B"
         else: return "C"
     else:
-        if score >= 65 and val >= acad_mean + 2 * acad_std: return "W"
-        elif score >= 60 and val >= acad_mean + 1 * acad_std: return "S"
+        if score >= 67 and val >= acad_mean + 2 * acad_std: return "W"
+        elif score >= 62 and val >= acad_mean + 1 * acad_std: return "S"
         elif score >= 55 and val >= acad_mean: return "A"
         elif score >= 45: return "B"
         else: return "C"
@@ -207,14 +207,14 @@ def get_rank_label(score, val, acad_mean, acad_std, is_lower_better=False):
 def get_rank_class(score, val, acad_mean, acad_std, is_lower_better=False):
     if pd.isna(score) or pd.isna(val): return "rank-badge rank-none"
     if is_lower_better:
-        if score >= 65 and val <= acad_mean - 2 * acad_std: return "rank-badge rank-w"
-        elif score >= 60 and val <= acad_mean - 1 * acad_std: return "rank-badge rank-s"
+        if score >= 67 and val <= acad_mean - 2 * acad_std: return "rank-badge rank-w"
+        elif score >= 62 and val <= acad_mean - 1 * acad_std: return "rank-badge rank-s"
         elif score >= 55 and val <= acad_mean: return "rank-badge rank-a"
         elif score >= 45: return "rank-badge rank-b"
         else: return "rank-badge rank-c"
     else:
-        if score >= 65 and val >= acad_mean + 2 * acad_std: return "rank-badge rank-w"
-        elif score >= 60 and val >= acad_mean + 1 * acad_std: return "rank-badge rank-s"
+        if score >= 67 and val >= acad_mean + 2 * acad_std: return "rank-badge rank-w"
+        elif score >= 62 and val >= acad_mean + 1 * acad_std: return "rank-badge rank-s"
         elif score >= 55 and val >= acad_mean: return "rank-badge rank-a"
         elif score >= 45: return "rank-badge rank-b"
         else: return "rank-badge rank-c"
@@ -484,7 +484,7 @@ with tab2:
         st.info("📊 複数回の測定データが必要です")
 
 with tab3:
-    st.markdown("**ランク基準** | **W**:65以上+2SD | **S**：60以上+1SD | **A**：55以上+基準 | **B**：45以上 | **C**：45未満")
+    st.markdown("**ランク基準** | **W**:67以上+2SD | **S**：62以上+1SD | **A**：55以上+基準 | **B**：45以上 | **C**：45未満")
     
     # UI項目の追加
     categories_ui = {
