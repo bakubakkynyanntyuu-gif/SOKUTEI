@@ -113,8 +113,8 @@ st.markdown("""
     .info-box { background: linear-gradient(135deg, rgba(166, 52, 70, 0.2), rgba(114, 44, 70, 0.2)); }
     .warning-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(166, 52, 70, 0.2)); }
     
-    /* UIパーツ（プルダウン・ボタン） */
-    [data-testid="stSelectbox"] label { color: #ffffff !important; font-weight: 800 !important; }
+    /* UIパーツ（プルダウン・ボタン・スライダー） */
+    [data-testid="stSelectbox"] label, [data-testid="stRadio"] label, [data-testid="stSlider"] label { color: #ffffff !important; font-weight: 800 !important; }
     [data-testid="stSelectbox"] div, [data-baseweb="select"], [data-baseweb="select"] div { background-color: #ffffff !important; color: #000000 !important; font-weight: 700 !important; }
     [data-testid="stExpander"] button { background-color: rgba(74, 25, 40, 0.8) !important; color: #ffffff !important; font-weight: 800 !important; border: 1px solid #c73a54 !important; }
     [data-testid="stExpanderDetails"] { background-color: transparent !important; }
@@ -140,7 +140,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ⚠️注意：スクワット/体重、幅跳び/下肢長の mean, std は仮の数値を入れています。実態に合わせて修正してください。
 academic_standards = {
     '男': {
         '垂直跳び': {'mean': 60, 'std': 10}, 'DJ_RSI': {'mean': 2.5, 'std': 0.3},
@@ -171,12 +170,12 @@ outlier_limits = {
     'DJ_RSI': [0.5, 5.0],      
     '立ち幅跳び': [1.0, 4.0],
     '12段跳び': [15, 50],
-    '幅跳び/下肢長': [0.005, 5.0],
+    '幅跳び/下肢長': [0.005, 0.1], 
     '前投げ': [3, 30],
     '後ろ投げ': [3, 30],
     'SQ_1RM': [20, 300],
     '懸垂': [0, 60],
-    'スクワット/体重': [0.04, 5.0],
+    'スクワット/体重': [0.1, 4.0], 
     'RAST_max_bw': [2.0, 20.0],
     'RAST_min_bw': [1.0, 15.0],
     'RAST_mean_bw': [1.5, 18.0],
@@ -184,11 +183,93 @@ outlier_limits = {
     'シャトルラン': [10, 200]
 }
 
+# --- 共通計算ロジック（関数化） ---
 def calc_t_score(val, mean, std):
     if pd.isna(val) or std == 0 or pd.isna(std): return None
     return (val - mean) / std * 10 + 50
 
-# 詳細データ用の5段階評価ラベル（W, S, A, B, C）
+def get_scores(data_row, gender, gender_df):
+    scores = {}
+    for key in academic_standards[gender].keys():
+        if key in data_row and pd.notna(data_row[key]):
+            t_mean, t_std = gender_df[key].mean(), gender_df[key].std()
+            team_t = calc_t_score(data_row[key], t_mean, t_std)
+            a_mean, a_std = academic_standards[gender][key]['mean'], academic_standards[gender][key]['std']
+            acad_t = calc_t_score(data_row[key], a_mean, a_std)
+            scores[key] = (team_t + acad_t) / 2
+        else:
+            scores[key] = None
+    return scores
+
+def get_radar_data(scores):
+    axis_defs = {
+        '水平パワー': [('幅跳び/下肢長', 0.5), ('立ち幅跳び', 0.2), ('12段跳び', 0.3)],
+        '垂直パワー': [('垂直跳び', 0.7), ('DJ_RSI', 0.3)],
+        'SSC': [('DJ_RSI', 0.7), ('12段跳び', 0.3)],
+        '全身パワー': [('前投げ', 0.3), ('後ろ投げ', 0.3), ('立ち幅跳び', 0.2), ('垂直跳び', 0.2)],
+        '基礎筋力': [('スクワット/体重', 0.5), ('SQ_1RM', 0.3), ('懸垂', 0.2)],
+        '無酸素パワー': [('RAST_max_bw', 0.25), ('RAST_min_bw', 0.25), ('RAST_mean_bw', 0.25), ('減少率/SEC', 0.25)],
+        '有酸素能力': [('シャトルラン', 1.0)]
+    }
+    radar_dict = {}
+    radar_symbols_dict = {}
+    for axis, components in axis_defs.items():
+        valid_scores = []
+        valid_weights = []
+        for key, weight in components:
+            if scores.get(key) is not None:
+                valid_scores.append(scores[key])
+                valid_weights.append(weight)
+        
+        if not valid_scores:
+            radar_dict[axis] = 50.0
+            radar_symbols_dict[axis] = 'x'
+        else:
+            total_weight = sum(valid_weights)
+            final_score = sum(s * (w / total_weight) for s, w in zip(valid_scores, valid_weights))
+            radar_dict[axis] = final_score
+            radar_symbols_dict[axis] = 'circle'
+    return radar_dict, radar_symbols_dict
+
+def get_athlete_info(radar_dict, radar_symbols_dict):
+    name_map = {
+        '垂直パワー': '垂直ジャンプ', '水平パワー': '水平技術', 
+        '全身パワー': 'パワー発揮', 'SSC': 'バネ', '基礎筋力': '最高出力',
+        '無酸素パワー': '無酸素運動', '有酸素能力': 'タフネス'
+    }
+    valid_categories = {k: v for k, v in radar_dict.items() if radar_symbols_dict[k] != 'x'}
+    
+    if len(valid_categories) < 2:
+        return "データ不足（測定推奨）", "---", "---", 0
+        
+    scores_list = list(valid_categories.values())
+    score_range = max(scores_list) - min(scores_list)
+    mean_score = np.mean(scores_list)
+    
+    sorted_categories = sorted(valid_categories.items(), key=lambda x: x[1], reverse=True)
+    top1_cat, top1_score = sorted_categories[0]
+    top2_cat, top2_score = sorted_categories[1]
+    worst_cat, worst_score = sorted_categories[-1]
+    
+    athlete_type = None
+    if len(valid_categories) == 7 and score_range < 15:
+        athlete_type = "高水準オールラウンダー" if mean_score >= 55 else "オールラウンダー"
+    
+    if athlete_type is None:
+        top2_set = {top1_cat, top2_cat}
+        if {"水平パワー", "垂直パワー"}.issubset(top2_set): athlete_type = "ジャンプ得意型"
+        elif {"SSC", "水平パワー"}.issubset(top2_set): athlete_type = "水平高速度得意型"
+        elif {"SSC", "垂直パワー"}.issubset(top2_set): athlete_type = "高ジャンプ高速度得意型"
+        elif "全身パワー" in top2_set and ("水平パワー" in top2_set or "垂直パワー" in top2_set): athlete_type = "高速度出力得意型"
+        elif {"基礎筋力", "全身パワー"}.issubset(top2_set): athlete_type = "筋出力高水準型"
+        elif {"無酸素パワー", "有酸素能力"}.issubset(top2_set): athlete_type = "高タフネスエコノミー特化型"
+        elif {"SSC", "無酸素パワー"}.issubset(top2_set): athlete_type = "高出力スプリント得意型"
+        elif {"SSC", "有酸素能力"}.issubset(top2_set): athlete_type = "ランニングエコノミー特化型"
+        else: athlete_type = f"{name_map[top1_cat]}{name_map[top2_cat]}型"
+        
+    return athlete_type, top1_cat, worst_cat, worst_score
+
+# --- ランク判定ロジック ---
 def get_rank_label(score, val, acad_mean, acad_std, is_lower_better=False):
     if pd.isna(score) or pd.isna(val): return "−"
     if is_lower_better:
@@ -247,7 +328,6 @@ def load_excel_data(file_path_or_buffer):
             df['RAST_min_bw'] = pd.to_numeric(df[col], errors='coerce')
         elif '無酸素素平均/BW' in col or ('平均' in col and 'BW' in col): 
             df['RAST_mean_bw'] = pd.to_numeric(df[col], errors='coerce')
-        # ★修正箇所: 「減少率/SEC」に完全一致、もしくは減少率とSECが含まれる場合に処理
         elif col == '減少率/SEC' or ('減少率' in col and 'SEC' in col): 
             df['減少率/SEC'] = pd.to_numeric(df[col], errors='coerce')
 
@@ -273,7 +353,6 @@ def load_excel_data(file_path_or_buffer):
                 min_limit, max_limit = outlier_limits[col]
                 df.loc[(df[col] < min_limit) | (df[col] > max_limit), col] = np.nan
     
-    # --- 新しい項目の算出 ---
     if 'SQ_1RM' in df.columns and '体重' in df.columns:
         df['スクワット/体重'] = df['SQ_1RM'] / df['体重']
     if '立ち幅跳び' in df.columns and '下肢長' in df.columns:
@@ -313,7 +392,7 @@ with sel_col2:
 
 player_data = valid_df[valid_df['名前'] == selected_name].sort_values('測定日')
 if player_data.empty: st.stop()
-latest_data = player_data.iloc[-1]
+latest_data = player_data.iloc[-1].copy()
 player_gender = latest_data.get('性別', '男')
 if player_gender not in ['男', '女']: player_gender = '男'
 
@@ -328,117 +407,27 @@ with col3: st.metric("性別", player_gender)
 with col4: st.metric("身長", f"{latest_data['身長']:.0f}cm" if pd.notna(latest_data.get('身長')) else "---")
 with col5: st.metric("体重", "−" if player_gender == '女' else f"{latest_data['体重']:.0f}kg" if pd.notna(latest_data.get('体重')) else "---")
 
-scores = {}
+# 自分のデータの算出
 gender_df = df[df['性別'] == player_gender]
-
-for key in academic_standards[player_gender].keys():
-    if key in latest_data and pd.notna(latest_data[key]):
-        t_mean, t_std = gender_df[key].mean(), gender_df[key].std()
-        team_t = calc_t_score(latest_data[key], t_mean, t_std)
-        a_mean, a_std = academic_standards[player_gender][key]['mean'], academic_standards[player_gender][key]['std']
-        acad_t = calc_t_score(latest_data[key], a_mean, a_std)
-        scores[key] = (team_t + acad_t) / 2
-    else: scores[key] = None
-
-# --- 重みと項目の変更 ---
-axis_defs = {
-    '水平パワー': [('幅跳び/下肢長', 0.5), ('立ち幅跳び', 0.2), ('12段跳び', 0.3)],
-    '垂直パワー': [('垂直跳び', 0.7), ('DJ_RSI', 0.3)],
-    'SSC': [('DJ_RSI', 0.7), ('12段跳び', 0.3)],
-    '全身パワー': [('前投げ', 0.3), ('後ろ投げ', 0.3), ('立ち幅跳び', 0.2), ('垂直跳び', 0.2)],
-    '基礎筋力': [('スクワット/体重', 0.5), ('SQ_1RM', 0.3), ('懸垂', 0.2)],
-    '無酸素パワー': [('RAST_max_bw', 0.25), ('RAST_min_bw', 0.25), ('RAST_mean_bw', 0.25), ('減少率/SEC', 0.25)],
-    '有酸素能力': [('シャトルラン', 1.0)]
-}
-
-radar_dict = {}
-radar_symbols_dict = {}
-
-for axis, components in axis_defs.items():
-    valid_scores = []
-    valid_weights = []
-    for key, weight in components:
-        if scores.get(key) is not None:
-            valid_scores.append(scores[key])
-            valid_weights.append(weight)
-    
-    if not valid_scores:
-        radar_dict[axis] = 50.0
-        radar_symbols_dict[axis] = 'x'
-    else:
-        total_weight = sum(valid_weights)
-        final_score = sum(s * (w / total_weight) for s, w in zip(valid_scores, valid_weights))
-        radar_dict[axis] = final_score
-        radar_symbols_dict[axis] = 'circle'
-
-name_map = {
-    '垂直パワー': '垂直ジャンプ', '水平パワー': '水平技術', 
-    '全身パワー': 'パワー発揮', 'SSC': 'バネ', '基礎筋力': '最高出力',
-    '無酸素パワー': '無酸素運動', '有酸素能力': 'タフネス'
-}
-
-valid_categories = {k: v for k, v in radar_dict.items() if radar_symbols_dict[k] != 'x'}
-
-if len(valid_categories) < 2:
-    athlete_type = "データ不足（測定推奨）"
-    top1_cat, worst_cat, worst_score = "---", "---", 0
-elif len(valid_categories) == 7:
-    scores_list = list(valid_categories.values())
-    score_range = max(scores_list) - min(scores_list)
-    mean_score = np.mean(scores_list)
-    if score_range < 15:
-        athlete_type = "高水準オールラウンダー" if mean_score >= 55 else "オールラウンダー"
-    else: athlete_type = None
-else: athlete_type = None
-
-if athlete_type is None and len(valid_categories) >= 2:
-    sorted_categories = sorted(valid_categories.items(), key=lambda x: x[1], reverse=True)
-    top1_cat, top1_score = sorted_categories[0]
-    top2_cat, top2_score = sorted_categories[1]
-    worst_cat, worst_score = sorted_categories[-1]
-    
-    top2_set = {top1_cat, top2_cat}
-    if {"水平パワー", "垂直パワー"}.issubset(top2_set): athlete_type = "ジャンプ得意型"
-    elif {"SSC", "水平パワー"}.issubset(top2_set): athlete_type = "水平高速度得意型"
-    elif {"SSC", "垂直パワー"}.issubset(top2_set): athlete_type = "高ジャンプ高速度得意型"
-    elif "全身パワー" in top2_set and ("水平パワー" in top2_set or "垂直パワー" in top2_set): athlete_type = "高速度出力得意型"
-    elif {"基礎筋力", "全身パワー"}.issubset(top2_set): athlete_type = "筋出力高水準型"
-    elif {"無酸素パワー", "有酸素能力"}.issubset(top2_set): athlete_type = "高タフネスエコノミー特化型"
-    elif {"SSC", "無酸素パワー"}.issubset(top2_set): athlete_type = "高出力スプリント得意型"
-    elif {"SSC", "有酸素能力"}.issubset(top2_set): athlete_type = "ランニングエコノミー特化型"
-    else: athlete_type = f"{name_map[top1_cat]}{name_map[top2_cat]}型"
+scores = get_scores(latest_data, player_gender, gender_df)
+radar_dict, radar_symbols_dict = get_radar_data(scores)
+athlete_type, top1_cat, worst_cat, worst_score = get_athlete_info(radar_dict, radar_symbols_dict)
 
 radar_categories = list(radar_dict.keys())
 radar_values = list(radar_dict.values())
 radar_symbols = list(radar_symbols_dict.values())
-
 radar_values_closed = radar_values + [radar_values[0]]
 radar_categories_closed = radar_categories + [radar_categories[0]]
 radar_symbols_closed = radar_symbols + [radar_symbols[0]]
 marker_colors = ['#ef4444' if s == 'x' else '#c73a54' for s in radar_symbols_closed]
 marker_sizes = [12 if s == 'x' else 8 for s in radar_symbols_closed]
 
-tab1, tab2, tab3 = st.tabs(["📊 レーダーチャート", "📈 推移グラフ", "📋 詳細データ"])
+# 4つのタブを生成（シミュレーターを追加）
+tab1, tab2, tab3, tab4 = st.tabs(["📊 レーダーチャート", "📈 推移グラフ", "📋 詳細データ", "🎮 シミュレーター"])
 
 with tab1:
     col_chart, col_info = st.columns([3, 2])
-    with col_chart:
-        fig_radar = go.Figure(data=go.Scatterpolar(
-            r=radar_values_closed, theta=radar_categories_closed, fill='toself',
-            fillcolor='rgba(199, 58, 84, 0.3)', line=dict(color='#c73a54', width=3), 
-            mode='lines+markers', marker=dict(symbol=radar_symbols_closed, size=marker_sizes, color=marker_colors)
-        ))
-        fig_radar.update_layout(
-            polar=dict(
-                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(255, 255, 255, 0.15)"),
-                angularaxis=dict(gridcolor="rgba(255, 255, 255, 0.15)")
-            ),
-            showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=450,
-            plot_bgcolor='rgba(0, 0, 0, 0)', paper_bgcolor='rgba(0, 0, 0, 0)',
-            font=dict(color='#ffffff', size=13)
-        )
-        st.plotly_chart(fig_radar, use_container_width=True)
-
+    
     with col_info:
         st.markdown("""
             <div class='athlete-type-section'>
@@ -448,24 +437,65 @@ with tab1:
         """, unsafe_allow_html=True)
         
         if "データ不足" in athlete_type:
-            st.markdown("""
-                <div class='warning-box'>
-                📝 有効なデータが不足しています。<br>各能力の傾向を分析するため、より多くの測定項目を入力してください。
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown("<div class='warning-box'>📝 有効なデータが不足しています。<br>各能力の傾向を分析するため、より多くの測定項目を入力してください。</div>", unsafe_allow_html=True)
         elif "オールラウンダー" in athlete_type:
-            st.markdown("""
-                <div class='info-box'>
-                ✨ すべての項目において弱点がなく、非常にバランスの取れた能力を持っています。
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown("<div class='info-box'>✨ すべての項目において弱点がなく、非常にバランスの取れた能力を持っています。</div>", unsafe_allow_html=True)
         else:
-            st.markdown(f"""
-                <div class='info-box'>
-                💪 <strong>最大の武器</strong>：{top1_cat}<br>
-                ⚠️ <strong>ボトルネック</strong>：{worst_cat} (スコア: {worst_score:.1f})
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"<div class='info-box'>💪 <strong>最大の武器</strong>：{top1_cat}<br>⚠️ <strong>ボトルネック</strong>：{worst_cat} (スコア: {worst_score:.1f})</div>", unsafe_allow_html=True)
+
+        # 🌟比較モードのUI
+        st.markdown("<br>#### 🆚 比較モード", unsafe_allow_html=True)
+        comp_mode = st.radio("レーダーチャートに重ねて比較", ["なし", "同性別平均", "ライバル選手"], horizontal=True)
+        
+        comp_radar = None
+        comp_name = ""
+        
+        if comp_mode == "同性別平均":
+            comp_name = "チーム平均"
+            comp_data = gender_df.mean(numeric_only=True)
+            comp_scores = get_scores(comp_data, player_gender, gender_df)
+            comp_radar, _ = get_radar_data(comp_scores)
+            
+        elif comp_mode == "ライバル選手":
+            rivals = [n for n in valid_df['名前'].dropna().unique() if n != selected_name]
+            if rivals:
+                comp_name = st.selectbox("ライバルを選択", rivals)
+                rival_data = valid_df[valid_df['名前'] == comp_name].sort_values('測定日').iloc[-1]
+                comp_scores = get_scores(rival_data, player_gender, gender_df)
+                comp_radar, _ = get_radar_data(comp_scores)
+            else:
+                st.info("比較できる他の選手がいません。")
+
+    with col_chart:
+        fig_radar = go.Figure()
+        # 自分
+        fig_radar.add_trace(go.Scatterpolar(
+            r=radar_values_closed, theta=radar_categories_closed, fill='toself', name='自分',
+            fillcolor='rgba(199, 58, 84, 0.3)', line=dict(color='#c73a54', width=3), 
+            mode='lines+markers', marker=dict(symbol=radar_symbols_closed, size=marker_sizes, color=marker_colors)
+        ))
+        # 比較データ
+        if comp_radar:
+            comp_values = list(comp_radar.values())
+            comp_values_closed = comp_values + [comp_values[0]]
+            fig_radar.add_trace(go.Scatterpolar(
+                r=comp_values_closed, theta=radar_categories_closed, fill='toself', name=comp_name,
+                fillcolor='rgba(60, 140, 200, 0.3)', line=dict(color='#3c8cc8', width=2, dash='dot'),
+                mode='lines+markers', marker=dict(symbol='circle', size=6, color='#3c8cc8')
+            ))
+            
+        fig_radar.update_layout(
+            polar=dict(
+                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(255, 255, 255, 0.15)"),
+                angularaxis=dict(gridcolor="rgba(255, 255, 255, 0.15)")
+            ),
+            showlegend=(comp_radar is not None),
+            legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5, font=dict(color='#ffffff')),
+            margin=dict(l=40, r=40, t=20, b=20), height=450,
+            plot_bgcolor='rgba(0, 0, 0, 0)', paper_bgcolor='rgba(0, 0, 0, 0)',
+            font=dict(color='#ffffff', size=13)
+        )
+        st.plotly_chart(fig_radar, use_container_width=True)
 
 with tab2:
     metric_options = list(academic_standards['男'].keys())
@@ -490,7 +520,6 @@ with tab2:
 with tab3:
     st.markdown("**ランク基準** | **W**:67以上+2SD | **S**：62以上+1SD | **A**：55以上+基準 | **B**：45以上 | **C**：45未満")
     
-    # UI項目の追加
     categories_ui = {
         "🚀 跳躍・下肢パワー": ['垂直跳び', 'DJ_RSI', '立ち幅跳び', '12段跳び', '幅跳び/下肢長'],
         "🔥 全身パワー・投擲": ['前投げ', '後ろ投げ'],
@@ -521,7 +550,7 @@ with tab3:
         with st.expander(cat_name, expanded=False):
             for k in items:
                 val = latest_data.get(k, np.nan)
-                val_str = f"{val:.2f}" if pd.notna(val) else "未測定"
+                val_str = f"{val:.3f}" if k == '幅跳び/下肢長' else (f"{val:.2f}" if pd.notna(val) else "未測定")
                 score = scores.get(k, np.nan)
                 
                 a_mean = academic_standards[player_gender][k]['mean']
@@ -541,17 +570,92 @@ with tab3:
                     </div>
                 """, unsafe_allow_html=True)
 
+# 🌟シミュレータータブ
+with tab4:
+    st.markdown("### 🎮 タラレバ・シミュレーター")
+    st.markdown("スライダーを動かして「**もしこの能力が伸びたら？**」をシミュレーションしてみよう！")
+    
+    sim_data = latest_data.copy()
+    
+    # 項目を3列で並べる
+    cols = st.columns(3)
+    idx = 0
+    for key in academic_standards[player_gender].keys():
+        if key in outlier_limits:
+            col = cols[idx % 3]
+            current_val = latest_data.get(key, np.nan)
+            if pd.isna(current_val):
+                current_val = academic_standards[player_gender][key]['mean']
+            
+            min_v, max_v = outlier_limits[key]
+            current_val = max(min_v, min(max_v, current_val)) # はみ出し防止
+            
+            if key == '幅跳び/下肢長': step = 0.001
+            elif key in ['スクワット/体重', 'DJ_RSI']: step = 0.05
+            elif 'RAST' in key or '減少率' in key: step = 0.1
+            else: step = 1.0
+                
+            sim_val = col.slider(key, float(min_v), float(max_v), float(current_val), step=float(step), key=f"sim_{key}")
+            sim_data[key] = sim_val
+            idx += 1
+            
+    # シミュレーション結果の計算
+    sim_scores = get_scores(sim_data, player_gender, gender_df)
+    sim_radar, sim_symbols = get_radar_data(sim_scores)
+    sim_type, sim_top1, sim_worst, sim_worst_score = get_athlete_info(sim_radar, sim_symbols)
+    
+    st.markdown("---")
+    sim_col1, sim_col2 = st.columns([3, 2])
+    with sim_col1:
+        sim_values = list(sim_radar.values())
+        sim_values_closed = sim_values + [sim_values[0]]
+        sim_syms = list(sim_symbols.values())
+        sim_syms_closed = sim_syms + [sim_syms[0]]
+        # シミュレーター用の特別なカラー（緑系）
+        sim_colors = ['#ef4444' if s == 'x' else '#10b981' for s in sim_syms_closed]
+        
+        fig_sim = go.Figure(data=go.Scatterpolar(
+            r=sim_values_closed, theta=radar_categories_closed, fill='toself',
+            fillcolor='rgba(16, 185, 129, 0.3)', line=dict(color='#10b981', width=3), 
+            mode='lines+markers', marker=dict(symbol=sim_syms_closed, size=8, color=sim_colors)
+        ))
+        fig_sim.update_layout(
+            polar=dict(
+                radialaxis=dict(visible=True, range=[20, 80], gridcolor="rgba(255, 255, 255, 0.15)"),
+                angularaxis=dict(gridcolor="rgba(255, 255, 255, 0.15)")
+            ),
+            showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=400,
+            plot_bgcolor='rgba(0, 0, 0, 0)', paper_bgcolor='rgba(0, 0, 0, 0)',
+            font=dict(color='#ffffff', size=13)
+        )
+        st.plotly_chart(fig_sim, use_container_width=True)
+        
+    with sim_col2:
+        st.markdown("""
+            <div class='athlete-type-section' style='border-left: 5px solid #10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 78, 59, 0.25));'>
+                <div class='athlete-type-label' style='color: #a7f3d0;'>シミュレーション後のタイプ</div>
+                <div class='athlete-type-badge' style='background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);'>⭐ """ + str(sim_type) + """</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if sim_type and "データ不足" not in sim_type and "オールラウンダー" not in sim_type:
+            st.markdown(f"""
+                <div class='info-box' style='border-left: 5px solid #10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 78, 59, 0.2));'>
+                💪 <strong>最大の武器</strong>：{sim_top1}<br>
+                ⚠️ <strong>ボトルネック</strong>：{sim_worst} (スコア: {sim_worst_score:.1f})
+                </div>
+            """, unsafe_allow_html=True)
+
 
 # --- 隠しアイコン（イースターエッグ）ランダムガチャ ---
 easter_egg_links = [
-    "https://www.bing.com/ck/a?!&&p=96feebe4b974b6c64c0d4591889e71bccc9d1d9a561f7139a1832c839e97fc6eJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%82%a6%e3%82%b5%e3%82%a4%e3%83%b3%e3%83%9c%e3%83%ab%e3%83%88+%e4%b8%96%e7%95%8c%e8%a8%98%e9%8c%b2&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUE2JUUzJTgyJUI1JUUzJTgyJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgzJTlDJUUzJTgzJUFCJUUzJTgzJTg4", # ボルト
-    "https://www.bing.com/ck/a?!&&p=16275fb98b9cfcb6c4bdc03d1b8a1cd8d69bd03aa6c504b001cba6ee9d7bb2b5JmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e7%b9%94%e7%94%b0%e5%b9%b9%e5%a4%ab&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUU3JUI5JTk0JUU3JTk0JUIwJUU1JUI5JUI5JUU5JTlCJTg0", # 織田幹夫
-    "https://www.bing.com/ck/a?!&&p=daba5aed31aa25dd67111b311df389b9778e65b54b9dc65fc4c81b51d4e0b882JmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%83%a4%e3%83%b3%e3%82%bc%e3%83%ac%e3%82%ba%e3%83%8b%e3%83%bc&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgzJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgyJUJDJUUzJTgzJUFDJUUzJTgyJUJBJUUzJTgzJThCJUUzJTgzJUJD", # ヤン・ゼレズニー
-    "https://www.bing.com/ck/a?!&&p=fb73dddea5344142ab1c8b755c2259460f206c57df6df00aa6aea5fe9a569c5aJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%83%87%e3%83%a5%e3%83%97%e3%83%a9%e3%83%b3%e3%83%86%e3%82%a3%e3%82%b9&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUEyJUUzJTgzJUFCJUUzJTgzJTlFJUUzJTgzJUIzJUUzJTgzJTg5JUUzJTgzJUJCJUUzJTgzJTg3JUUzJTgzJUE1JUUzJTgzJTk3JUUzJTgzJUE5JUUzJTgzJUIzJUUzJTgzJTg2JUUzJTgyJUEzJUUzJTgyJUI5", # デュプランティス
-    "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A7%E3%82%A4%E3%83%89%E3%83%BB%E3%83%90%E3%83%B3%E3%83%8B%E3%83%BC%E3%82%AD%E3%83%AB%E3%82%AF" # ウェイド・バンニーキルク
+    "https://www.bing.com/ck/a?!&&p=96feebe4b974b6c64c0d4591889e71bccc9d1d9a561f7139a1832c839e97fc6eJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%82%a6%e3%82%b5%e3%82%a4%e3%83%b3%e3%83%9c%e3%83%ab%e3%83%88+%e4%b8%96%e7%95%8c%e8%a8%98%e9%8c%b2&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUE2JUUzJTgyJUI1JUUzJTgyJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgzJTlDJUUzJTgzJUFCJUUzJTgzJTg4",
+    "https://www.bing.com/ck/a?!&&p=16275fb98b9cfcb6c4bdc03d1b8a1cd8d69bd03aa6c504b001cba6ee9d7bb2b5JmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e7%b9%94%e7%94%b0%e5%b9%b9%e5%a4%ab&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUU3JUI5JTk0JUU3JTk0JUIwJUU1JUI5JUI5JUU5JTlCJTg0",
+    "https://www.bing.com/ck/a?!&&p=daba5aed31aa25dd67111b311df389b9778e65b54b9dc65fc4c81b51d4e0b882JmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%83%a4%e3%83%b3%e3%82%bc%e3%83%ac%e3%82%ba%e3%83%8b%e3%83%bc&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgzJUE0JUUzJTgzJUIzJUUzJTgzJUJCJUUzJTgyJUJDJUUzJTgzJUFDJUUzJTgyJUJBJUUzJTgzJThCJUUzJTgzJUJD",
+    "https://www.bing.com/ck/a?!&&p=fb73dddea5344142ab1c8b755c2259460f206c57df6df00aa6aea5fe9a569c5aJmltdHM9MTc4ODkxMjAwMA&ptn=3&ver=2&hsh=4&fclid=2cde5f6e-895d-6594-2131-49cf885864e4&psq=%e3%83%87%e3%83%a5%e3%83%97%e3%83%a9%e3%83%b3%e3%83%86%e3%82%a3%e3%82%b9&u=a1aHR0cHM6Ly9qYS53aWtpcGVkaWEub3JnL3dpa2kvJUUzJTgyJUEyJUUzJTgzJUFCJUUzJTgzJTlFJUUzJTgzJUIzJUUzJTgzJTg5JUUzJTgzJUJCJUUzJTgzJTg3JUUzJTgzJUE1JUUzJTgzJTk3JUUzJTgzJUE5JUUzJTgzJUIzJUUzJTgzJTg2JUUzJTgyJUEzJUUzJTgyJUI5",
+    "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A7%E3%82%A4%E3%83%89%E3%83%BB%E3%83%90%E3%83%B3%E3%83%8B%E3%83%BC%E3%82%AD%E3%83%AB%E3%82%AF"
 ]
 
-# ランダムに1つ選択
 selected_link = random.choice(easter_egg_links)
 
 st.markdown(f"""
