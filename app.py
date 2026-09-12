@@ -98,7 +98,7 @@ st.markdown("""
         border-radius: 6px; min-width: 45px; text-align: center;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); margin-right: 12px;
     }
-    .rank-w { background: linear-gradient(135deg, #a63446, #722c46); color: #ffffff; } /* 追加：臙脂色のWランク */
+    .rank-w { background: linear-gradient(135deg, #a63446, #722c46); color: #ffffff; }
     .rank-s { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #451a03; }
     .rank-a { background: linear-gradient(135deg, #f87171, #ef4444); color: #ffffff; }
     .rank-b { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #ffffff; }
@@ -149,8 +149,8 @@ academic_standards = {
         '前投げ': {'mean': 12, 'std': 1.5}, '後ろ投げ': {'mean': 13, 'std': 1.5},
         'SQ_1RM': {'mean': 120, 'std': 20}, '懸垂': {'mean': 12, 'std': 4},
         'スクワット/体重': {'mean': 2.0, 'std': 0.3}, 
-        'RAST_max_bw': {'mean': 14.0, 'std': 1.2}, 'RAST_min_bw': {'mean': 9.0, 'std': 1.0},
-        'RAST_mean_bw': {'mean': 11.0, 'std': 1.0}, '減少率/SEC': {'mean': 4.0, 'std': 1.0}, # 名前変更
+        'RAST_max_bw': {'mean': 14.0, 'std': 1.2}, 'RAST_min_bw': {'mean': 7.8, 'std': 1.0},
+        'RAST_mean_bw': {'mean': 11.0, 'std': 1.0}, '減少率/SEC': {'mean': 4.0, 'std': 1.0},
         'シャトルラン': {'mean': 100, 'std': 10}
     },
     '女': {
@@ -159,9 +159,9 @@ academic_standards = {
         '幅跳び/下肢長': {'mean': 0.027, 'std': 0.003}, 
         '前投げ': {'mean': 8, 'std': 1.5}, '後ろ投げ': {'mean': 9, 'std': 1.5},
         'SQ_1RM': {'mean': 80, 'std': 15}, '懸垂': {'mean': 5, 'std': 3},
-        'スクワット/体重': {'mean': 1.5, 'std': 0.2}, # ← 仮の数値
-        'RAST_max_bw': {'mean': 10, 'std': 1.0}, 'RAST_min_bw': {'mean': 8.0, 'std': 1.0},
-        'RAST_mean_bw': {'mean': 9.0, 'std': 1.0}, '減少率/SEC': {'mean': 4.5, 'std': 1.0}, # 名前変更
+        'スクワット/体重': {'mean': 1.5, 'std': 0.2},
+        'RAST_max_bw': {'mean': 10.0, 'std': 1.0}, 'RAST_min_bw': {'mean': 7.0, 'std': 1.0},
+        'RAST_mean_bw': {'mean': 8.5, 'std': 1.0}, '減少率/SEC': {'mean': 4.5, 'std': 1.0},
         'シャトルラン': {'mean': 80, 'std': 8}
     }
 }
@@ -171,16 +171,16 @@ outlier_limits = {
     'DJ_RSI': [0.5, 5.0],      
     '立ち幅跳び': [1.0, 4.0],
     '12段跳び': [15, 50],
-    '幅跳び/下肢長': [0.005, 5.0], # ← 仮の数値
+    '幅跳び/下肢長': [0.005, 5.0],
     '前投げ': [3, 30],
     '後ろ投げ': [3, 30],
     'SQ_1RM': [20, 300],
     '懸垂': [0, 60],
-    'スクワット/体重': [0.04, 5.0], # ← 仮の数値
+    'スクワット/体重': [0.04, 5.0],
     'RAST_max_bw': [2.0, 20.0],
     'RAST_min_bw': [1.0, 15.0],
     'RAST_mean_bw': [1.5, 18.0],
-    '減少率/SEC': [0.0, 30.0], # 名前変更
+    '減少率/SEC': [0.0, 30.0],
     'シャトルラン': [10, 200]
 }
 
@@ -241,11 +241,15 @@ def load_excel_data(file_path_or_buffer):
     df.rename(columns=col_mapping, inplace=True)
     
     for col in df.columns:
-        if '無酸素素最大/BW' in col or ('最大' in col and 'BW' in col): df['RAST_max_bw'] = pd.to_numeric(df[col], errors='coerce')
-        elif '無酸素素小/BW' in col or ('小' in col and 'BW' in col) or ('最小' in col and 'BW' in col): df['RAST_min_bw'] = pd.to_numeric(df[col], errors='coerce')
-        elif '無酸素素平均/BW' in col or ('平均' in col and 'BW' in col): df['RAST_mean_bw'] = pd.to_numeric(df[col], errors='coerce')
-        elif '減少率' in col and 'SEC' in col: df['減少率/SEC'] = pd.to_numeric(df[col], errors='coerce')
-        elif '減少率' in col and 'BW' in col: df['減少率/SEC'] = pd.to_numeric(df[col], errors='coerce')
+        if '無酸素素最大/BW' in col or ('最大' in col and 'BW' in col): 
+            df['RAST_max_bw'] = pd.to_numeric(df[col], errors='coerce')
+        elif '無酸素素小/BW' in col or ('小' in col and 'BW' in col) or ('最小' in col and 'BW' in col): 
+            df['RAST_min_bw'] = pd.to_numeric(df[col], errors='coerce')
+        elif '無酸素素平均/BW' in col or ('平均' in col and 'BW' in col): 
+            df['RAST_mean_bw'] = pd.to_numeric(df[col], errors='coerce')
+        # ★修正箇所: 「減少率/SEC」に完全一致、もしくは減少率とSECが含まれる場合に処理
+        elif col == '減少率/SEC' or ('減少率' in col and 'SEC' in col): 
+            df['減少率/SEC'] = pd.to_numeric(df[col], errors='coerce')
 
     if '名前' not in df.columns: return df
     if '測定日' not in df.columns:
@@ -500,16 +504,16 @@ with tab3:
         'DJ_RSI': '下肢のバネ性能を示す反応筋力指数',
         '立ち幅跳び': '水平方向への爆発的パワー発揮能力',
         '12段跳び': '連続跳躍による推進力と弾性エネルギーの再利用',
-        '幅跳び/下肢長': '下肢の長さを考慮した水平方向への相対的なパワー', # 追加
+        '幅跳び/下肢長': '下肢の長さを考慮した水平方向への相対的なパワー', 
         '前投げ': '体幹から上半身への力の伝達',
         '後ろ投げ': '股関節伸展を主体とした全身爆発力',
         'SQ_1RM': 'すべてのパワーの土台となる基礎筋力',
         '懸垂': '上半身の引く筋力および筋持久力',
-        'スクワット/体重': '体重に対する相対的な基礎筋力', # 追加
+        'スクワット/体重': '体重に対する相対的な基礎筋力', 
         'RAST_max_bw': '無酸素運動における最高出力',
         'RAST_min_bw': '疲労状態での底力',
         'RAST_mean_bw': '無酸素運動を持続するための総合容量',
-        '減少率/SEC': 'パワー減少率（低いほど疲労耐性が高い）', # 変更
+        '減少率/SEC': 'パワー減少率（低いほど疲労耐性が高い）', 
         'シャトルラン': '有酸素性能力（全身持久力）'
     }
 
