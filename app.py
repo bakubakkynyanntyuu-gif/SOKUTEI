@@ -98,6 +98,7 @@ st.markdown("""
         border-radius: 6px; min-width: 45px; text-align: center;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); margin-right: 12px;
     }
+    .rank-w { background: linear-gradient(135deg, #a63446, #722c46); color: #ffffff; } /* 追加：臙脂色のWランク */
     .rank-s { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #451a03; }
     .rank-a { background: linear-gradient(135deg, #f87171, #ef4444); color: #ffffff; }
     .rank-b { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #ffffff; }
@@ -139,23 +140,28 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# ⚠️注意：スクワット/体重、幅跳び/下肢長の mean, std は仮の数値を入れています。実態に合わせて修正してください。
 academic_standards = {
     '男': {
-        '垂直跳び': {'mean': 60, 'std': 10}, 'DJ_RSI': {'mean': 2.2, 'std': 0.3},
+        '垂直跳び': {'mean': 60, 'std': 10}, 'DJ_RSI': {'mean': 2.5, 'std': 0.3},
         '立ち幅跳び': {'mean': 2.6, 'std': 0.2}, '12段跳び': {'mean': 30, 'std': 2},
+        '幅跳び/下肢長': {'mean': 2.8, 'std': 0.2}, # ← 仮の数値
         '前投げ': {'mean': 12, 'std': 1.5}, '後ろ投げ': {'mean': 13, 'std': 1.5},
         'SQ_1RM': {'mean': 120, 'std': 20}, '懸垂': {'mean': 12, 'std': 4},
-        'RAST_max_bw': {'mean': 11.0, 'std': 1.2}, 'RAST_min_bw': {'mean': 7.0, 'std': 1.0},
-        'RAST_mean_bw': {'mean': 8.5, 'std': 1.0}, 'RAST_drop_bw': {'mean': 4.0, 'std': 1.0},
+        'スクワット/体重': {'mean': 1.8, 'std': 0.3}, # ← 仮の数値
+        'RAST_max_bw': {'mean': 14.0, 'std': 1.2}, 'RAST_min_bw': {'mean': 7.0, 'std': 1.0},
+        'RAST_mean_bw': {'mean': 9.5, 'std': 1.0}, '減少率/SEC': {'mean': 4.0, 'std': 1.0}, # 名前変更
         'シャトルラン': {'mean': 100, 'std': 10}
     },
     '女': {
-        '垂直跳び': {'mean': 50, 'std': 8}, 'DJ_RSI': {'mean': 1.8, 'std': 0.3},
+        '垂直跳び': {'mean': 50, 'std': 8}, 'DJ_RSI': {'mean': 2.0, 'std': 0.3},
         '立ち幅跳び': {'mean': 2.1, 'std': 0.2}, '12段跳び': {'mean': 25, 'std': 2},
+        '幅跳び/下肢長': {'mean': 2.4, 'std': 0.2}, # ← 仮の数値
         '前投げ': {'mean': 8, 'std': 1.5}, '後ろ投げ': {'mean': 9, 'std': 1.5},
         'SQ_1RM': {'mean': 80, 'std': 15}, '懸垂': {'mean': 5, 'std': 3},
-        'RAST_max_bw': {'mean': 8.5, 'std': 1.0}, 'RAST_min_bw': {'mean': 6.0, 'std': 1.0},
-        'RAST_mean_bw': {'mean': 7.2, 'std': 1.0}, 'RAST_drop_bw': {'mean': 4.5, 'std': 1.0},
+        'スクワット/体重': {'mean': 1.4, 'std': 0.2}, # ← 仮の数値
+        'RAST_max_bw': {'mean': 10, 'std': 1.0}, 'RAST_min_bw': {'mean': 6.0, 'std': 1.0},
+        'RAST_mean_bw': {'mean': 8.2, 'std': 1.0}, '減少率/SEC': {'mean': 4.5, 'std': 1.0}, # 名前変更
         'シャトルラン': {'mean': 80, 'std': 8}
     }
 }
@@ -165,14 +171,16 @@ outlier_limits = {
     'DJ_RSI': [0.5, 5.0],      
     '立ち幅跳び': [1.0, 4.0],
     '12段跳び': [15, 50],
+    '幅跳び/下肢長': [0.5, 5.0], # ← 仮の数値
     '前投げ': [3, 30],
     '後ろ投げ': [3, 30],
     'SQ_1RM': [20, 300],
     '懸垂': [0, 60],
+    'スクワット/体重': [0.5, 4.0], # ← 仮の数値
     'RAST_max_bw': [2.0, 20.0],
     'RAST_min_bw': [1.0, 15.0],
     'RAST_mean_bw': [1.5, 18.0],
-    'RAST_drop_bw': [0.0, 30.0],
+    '減少率/SEC': [0.0, 30.0], # 名前変更
     'シャトルラン': [10, 200]
 }
 
@@ -180,19 +188,36 @@ def calc_t_score(val, mean, std):
     if pd.isna(val) or std == 0 or pd.isna(std): return None
     return (val - mean) / std * 10 + 50
 
-def get_rank_label(score):
-    if pd.isna(score): return "−"
-    elif score >= 65: return "S"
-    elif score >= 55: return "A"
-    elif score >= 45: return "B"
-    else: return "C"
+# 詳細データ用の5段階評価ラベル（W, S, A, B, C）
+def get_rank_label(score, val, acad_mean, acad_std, is_lower_better=False):
+    if pd.isna(score) or pd.isna(val): return "−"
+    if is_lower_better:
+        if score >= 65 and val <= acad_mean - 2 * acad_std: return "W"
+        elif score >= 60 and val <= acad_mean - 1 * acad_std: return "S"
+        elif score >= 55 and val <= acad_mean: return "A"
+        elif score >= 45: return "B"
+        else: return "C"
+    else:
+        if score >= 65 and val >= acad_mean + 2 * acad_std: return "W"
+        elif score >= 60 and val >= acad_mean + 1 * acad_std: return "S"
+        elif score >= 55 and val >= acad_mean: return "A"
+        elif score >= 45: return "B"
+        else: return "C"
 
-def get_rank_class(score):
-    if pd.isna(score): return "rank-badge rank-none"
-    elif score >= 65: return "rank-badge rank-s"
-    elif score >= 55: return "rank-badge rank-a"
-    elif score >= 45: return "rank-badge rank-b"
-    else: return "rank-badge rank-c"
+def get_rank_class(score, val, acad_mean, acad_std, is_lower_better=False):
+    if pd.isna(score) or pd.isna(val): return "rank-badge rank-none"
+    if is_lower_better:
+        if score >= 65 and val <= acad_mean - 2 * acad_std: return "rank-badge rank-w"
+        elif score >= 60 and val <= acad_mean - 1 * acad_std: return "rank-badge rank-s"
+        elif score >= 55 and val <= acad_mean: return "rank-badge rank-a"
+        elif score >= 45: return "rank-badge rank-b"
+        else: return "rank-badge rank-c"
+    else:
+        if score >= 65 and val >= acad_mean + 2 * acad_std: return "rank-badge rank-w"
+        elif score >= 60 and val >= acad_mean + 1 * acad_std: return "rank-badge rank-s"
+        elif score >= 55 and val >= acad_mean: return "rank-badge rank-a"
+        elif score >= 45: return "rank-badge rank-b"
+        else: return "rank-badge rank-c"
 
 @st.cache_data(ttl=60)
 def load_excel_data(file_path_or_buffer):
@@ -219,7 +244,8 @@ def load_excel_data(file_path_or_buffer):
         if '無酸素素最大/BW' in col or ('最大' in col and 'BW' in col): df['RAST_max_bw'] = pd.to_numeric(df[col], errors='coerce')
         elif '無酸素素小/BW' in col or ('小' in col and 'BW' in col) or ('最小' in col and 'BW' in col): df['RAST_min_bw'] = pd.to_numeric(df[col], errors='coerce')
         elif '無酸素素平均/BW' in col or ('平均' in col and 'BW' in col): df['RAST_mean_bw'] = pd.to_numeric(df[col], errors='coerce')
-        elif '減少率' in col and 'BW' in col: df['RAST_drop_bw'] = pd.to_numeric(df[col], errors='coerce')
+        elif '減少率' in col and 'SEC' in col: df['減少率/SEC'] = pd.to_numeric(df[col], errors='coerce')
+        elif '減少率' in col and 'BW' in col: df['減少率/SEC'] = pd.to_numeric(df[col], errors='coerce')
 
     if '名前' not in df.columns: return df
     if '測定日' not in df.columns:
@@ -233,7 +259,7 @@ def load_excel_data(file_path_or_buffer):
     df['性別'] = df['ID'].str[0].str.upper().map({'M': '男', 'F': '女'}).fillna('不明')
     df['入学年度'] = df['ID'].apply(lambda x: f"20{x[1:3]}年入学" if len(x) >= 3 and x[1:3].isdigit() else "年度不明")
     
-    numeric_cols = list(academic_standards['男'].keys()) + ['身長', '体重']
+    numeric_cols = list(academic_standards['男'].keys()) + ['身長', '体重', '下肢長']
     for col in numeric_cols:
         if col in df.columns: 
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -242,6 +268,12 @@ def load_excel_data(file_path_or_buffer):
             if col in outlier_limits:
                 min_limit, max_limit = outlier_limits[col]
                 df.loc[(df[col] < min_limit) | (df[col] > max_limit), col] = np.nan
+    
+    # --- 新しい項目の算出 ---
+    if 'SQ_1RM' in df.columns and '体重' in df.columns:
+        df['スクワット/体重'] = df['SQ_1RM'] / df['体重']
+    if '立ち幅跳び' in df.columns and '下肢長' in df.columns:
+        df['幅跳び/下肢長'] = df['立ち幅跳び'] / df['下肢長']
             
     return df
 
@@ -265,7 +297,7 @@ with sel_col1:
     selected_year = st.selectbox("📅 入学年度を選択", sorted(df['入学年度'].unique(), reverse=True))
 
 filtered_df = df[df['入学年度'] == selected_year]
-meas_cols = list(academic_standards['男'].keys())
+meas_cols = [k for k in academic_standards['男'].keys() if k not in ['スクワット/体重', '幅跳び/下肢長']]
 valid_df = filtered_df.dropna(subset=meas_cols, how='all')
 
 if valid_df.empty:
@@ -304,13 +336,14 @@ for key in academic_standards[player_gender].keys():
         scores[key] = (team_t + acad_t) / 2
     else: scores[key] = None
 
+# --- 重みと項目の変更 ---
 axis_defs = {
-    '水平パワー': [('立ち幅跳び', 0.7), ('12段跳び', 0.3)],
+    '水平パワー': [('幅跳び/下肢長', 0.5), ('立ち幅跳び', 0.2), ('12段跳び', 0.3)],
     '垂直パワー': [('垂直跳び', 0.7), ('DJ_RSI', 0.3)],
     'SSC': [('DJ_RSI', 0.7), ('12段跳び', 0.3)],
     '全身パワー': [('前投げ', 0.3), ('後ろ投げ', 0.3), ('立ち幅跳び', 0.2), ('垂直跳び', 0.2)],
-    '基礎筋力': [('SQ_1RM', 0.7), ('懸垂', 0.3)],
-    '無酸素パワー': [('RAST_max_bw', 0.25), ('RAST_min_bw', 0.25), ('RAST_mean_bw', 0.25), ('RAST_drop_bw', 0.25)],
+    '基礎筋力': [('スクワット/体重', 0.5), ('SQ_1RM', 0.3), ('懸垂', 0.2)],
+    '無酸素パワー': [('RAST_max_bw', 0.25), ('RAST_min_bw', 0.25), ('RAST_mean_bw', 0.25), ('減少率/SEC', 0.25)],
     '有酸素能力': [('シャトルラン', 1.0)]
 }
 
@@ -451,13 +484,14 @@ with tab2:
         st.info("📊 複数回の測定データが必要です")
 
 with tab3:
-    st.markdown("**ランク基準** | **S**：65以上 | **A**：55以上 | **B**：45以上 | **C**：45未満")
+    st.markdown("**ランク基準** | **W**:65以上+2SD | **S**：60以上+1SD | **A**：55以上+基準 | **B**：45以上 | **C**：45未満")
     
+    # UI項目の追加
     categories_ui = {
-        "🚀 跳躍・下肢パワー": ['垂直跳び', 'DJ_RSI', '立ち幅跳び', '12段跳び'],
+        "🚀 跳躍・下肢パワー": ['垂直跳び', 'DJ_RSI', '立ち幅跳び', '12段跳び', '幅跳び/下肢長'],
         "🔥 全身パワー・投擲": ['前投げ', '後ろ投げ'],
-        "🏋️ 基礎筋力": ['SQ_1RM', '懸垂'],
-        "⚡ 無酸素パワー": ['RAST_max_bw', 'RAST_min_bw', 'RAST_mean_bw', 'RAST_drop_bw'],
+        "🏋️ 基礎筋力": ['SQ_1RM', '懸垂', 'スクワット/体重'],
+        "⚡ 無酸素パワー": ['RAST_max_bw', 'RAST_min_bw', 'RAST_mean_bw', '減少率/SEC'],
         "🫁 有酸素能力": ['シャトルラン']
     }
     
@@ -466,14 +500,16 @@ with tab3:
         'DJ_RSI': '下肢のバネ性能を示す反応筋力指数',
         '立ち幅跳び': '水平方向への爆発的パワー発揮能力',
         '12段跳び': '連続跳躍による推進力と弾性エネルギーの再利用',
+        '幅跳び/下肢長': '下肢の長さを考慮した水平方向への相対的なパワー', # 追加
         '前投げ': '体幹から上半身への力の伝達',
         '後ろ投げ': '股関節伸展を主体とした全身爆発力',
         'SQ_1RM': 'すべてのパワーの土台となる基礎筋力',
         '懸垂': '上半身の引く筋力および筋持久力',
+        'スクワット/体重': '体重に対する相対的な基礎筋力', # 追加
         'RAST_max_bw': '無酸素運動における最高出力',
         'RAST_min_bw': '疲労状態での底力',
         'RAST_mean_bw': '無酸素運動を持続するための総合容量',
-        'RAST_drop_bw': 'パワー減少率（低いほど疲労耐性が高い）',
+        '減少率/SEC': 'パワー減少率（低いほど疲労耐性が高い）', # 変更
         'シャトルラン': '有酸素性能力（全身持久力）'
     }
 
@@ -483,8 +519,13 @@ with tab3:
                 val = latest_data.get(k, np.nan)
                 val_str = f"{val:.2f}" if pd.notna(val) else "未測定"
                 score = scores.get(k, np.nan)
-                rank = get_rank_label(score)
-                rank_class = get_rank_class(score)
+                
+                a_mean = academic_standards[player_gender][k]['mean']
+                a_std = academic_standards[player_gender][k]['std']
+                is_lower = ('減少率' in k)
+                
+                rank = get_rank_label(score, val, a_mean, a_std, is_lower)
+                rank_class = get_rank_class(score, val, a_mean, a_std, is_lower)
                 
                 st.markdown(f"""
                     <div class='data-row'>
