@@ -151,25 +151,25 @@ st.markdown("""
 academic_standards = {
     '男': {
         '垂直跳び': {'mean': 60, 'std': 10}, 'DJ_RSI': {'mean': 2.5, 'std': 0.3},
-        '立ち幅跳び': {'mean': 2.6, 'std': 0.2}, '12段跳び': {'mean': 30, 'std': 2},
+        '立ち幅跳び': {'mean': 2.6, 'std': 0.2}, '12段跳び': {'mean': 30, 'std': 4},
         '幅跳び/下肢長': {'mean': 0.032, 'std': 0.004}, 
-        '前投げ': {'mean': 12, 'std': 1.5}, '後ろ投げ': {'mean': 13, 'std': 1.5},
-        'SQ_1RM': {'mean': 120, 'std': 20}, '懸垂': {'mean': 12, 'std': 4},
+        '前投げ': {'mean': 12, 'std': 2}, '後ろ投げ': {'mean': 13, 'std': 2},
+        'SQ_1RM': {'mean': 130, 'std': 20}, '懸垂': {'mean': 12, 'std': 4},
         'スクワット/体重': {'mean': 2.0, 'std': 0.3}, 
         'RAST_max_bw': {'mean': 14.0, 'std': 1.2}, 'RAST_min_bw': {'mean': 7.8, 'std': 1.0},
         'RAST_mean_bw': {'mean': 11.0, 'std': 1.0}, '減少率/SEC': {'mean': 4.0, 'std': 1.0},
-        'シャトルラン': {'mean': 100, 'std': 10}
+        'シャトルラン': {'mean': 110, 'std': 15}
     },
     '女': {
         '垂直跳び': {'mean': 50, 'std': 8}, 'DJ_RSI': {'mean': 2.0, 'std': 0.3},
-        '立ち幅跳び': {'mean': 2.1, 'std': 0.2}, '12段跳び': {'mean': 25, 'std': 2},
+        '立ち幅跳び': {'mean': 2.1, 'std': 0.2}, '12段跳び': {'mean': 25, 'std': 3},
         '幅跳び/下肢長': {'mean': 0.027, 'std': 0.003}, 
-        '前投げ': {'mean': 8, 'std': 1.5}, '後ろ投げ': {'mean': 9, 'std': 1.5},
-        'SQ_1RM': {'mean': 80, 'std': 15}, '懸垂': {'mean': 5, 'std': 3},
-        'スクワット/体重': {'mean': 1.5, 'std': 0.2},
+        '前投げ': {'mean': 8, 'std': 2}, '後ろ投げ': {'mean': 9, 'std': 2},
+        'SQ_1RM': {'mean': 100, 'std': 15}, '懸垂': {'mean': 6, 'std': 3},
+        'スクワット/体重': {'mean': 1.6, 'std': 0.2},
         'RAST_max_bw': {'mean': 10.0, 'std': 1.0}, 'RAST_min_bw': {'mean': 7.0, 'std': 1.0},
         'RAST_mean_bw': {'mean': 8.5, 'std': 1.0}, '減少率/SEC': {'mean': 4.5, 'std': 1.0},
-        'シャトルラン': {'mean': 80, 'std': 8}
+        'シャトルラン': {'mean': 90, 'std': 10}
     }
 }
 
@@ -281,14 +281,14 @@ def get_athlete_info(radar_dict, radar_symbols_dict):
 def get_rank_label(score, val, acad_mean, acad_std, is_lower_better=False):
     if pd.isna(score) or pd.isna(val): return "−"
     if is_lower_better:
-        if score >= 67 and val <= acad_mean - 2 * acad_std: return "W"
-        elif score >= 62 and val <= acad_mean - 1 * acad_std: return "S"
+        if score >= 70 and val <= acad_mean - 2 * acad_std: return "W"
+        elif score >= 65 and val <= acad_mean - 1 * acad_std: return "S"
         elif score >= 55 and val <= acad_mean: return "A"
         elif score >= 45: return "B"
         else: return "C"
     else:
-        if score >= 67 and val >= acad_mean + 2 * acad_std: return "W"
-        elif score >= 62 and val >= acad_mean + 1 * acad_std: return "S"
+        if score >= 70 and val >= acad_mean + 2 * acad_std: return "W"
+        elif score >= 65 and val >= acad_mean + 1 * acad_std: return "S"
         elif score >= 55 and val >= acad_mean: return "A"
         elif score >= 45: return "B"
         else: return "C"
@@ -296,14 +296,14 @@ def get_rank_label(score, val, acad_mean, acad_std, is_lower_better=False):
 def get_rank_class(score, val, acad_mean, acad_std, is_lower_better=False):
     if pd.isna(score) or pd.isna(val): return "rank-badge rank-none"
     if is_lower_better:
-        if score >= 67 and val <= acad_mean - 2 * acad_std: return "rank-badge rank-w"
-        elif score >= 62 and val <= acad_mean - 1 * acad_std: return "rank-badge rank-s"
+        if score >= 70 and val <= acad_mean - 2 * acad_std: return "rank-badge rank-w"
+        elif score >= 65 and val <= acad_mean - 1 * acad_std: return "rank-badge rank-s"
         elif score >= 55 and val <= acad_mean: return "rank-badge rank-a"
         elif score >= 45: return "rank-badge rank-b"
         else: return "rank-badge rank-c"
     else:
-        if score >= 67 and val >= acad_mean + 2 * acad_std: return "rank-badge rank-w"
-        elif score >= 62 and val >= acad_mean + 1 * acad_std: return "rank-badge rank-s"
+        if score >= 70 and val >= acad_mean + 2 * acad_std: return "rank-badge rank-w"
+        elif score >= 65 and val >= acad_mean + 1 * acad_std: return "rank-badge rank-s"
         elif score >= 55 and val >= acad_mean: return "rank-badge rank-a"
         elif score >= 45: return "rank-badge rank-b"
         else: return "rank-badge rank-c"
@@ -316,10 +316,10 @@ def get_next_rank_target(current_rank, t_mean, t_std, a_mean, a_std, is_lower_be
     next_rank_req_val = None
     
     if current_rank == "S":
-        next_rank_req_score = 67
+        next_rank_req_score = 70
         next_rank_req_val = a_mean - 2 * a_std if is_lower_better else a_mean + 2 * a_std
     elif current_rank == "A":
-        next_rank_req_score = 62
+        next_rank_req_score = 65
         next_rank_req_val = a_mean - 1 * a_std if is_lower_better else a_mean + 1 * a_std
     elif current_rank == "B":
         next_rank_req_score = 55
@@ -559,7 +559,7 @@ with tab2:
         st.info("📊 複数回の測定データが必要です")
 
 with tab3:
-    st.markdown("**ランク基準** | **W**:67以上+2SD | **S**：62以上+1SD | **A**：55以上+基準 | **B**：45以上 | **C**：45未満")
+    st.markdown("**ランク基準** | **W**:70以上+2SD | **S**：65以上+1SD | **A**：55以上+基準 | **B**：45以上 | **C**：45未満")
     
     categories_ui = {
         "🚀 跳躍・下肢パワー": ['垂直跳び', 'DJ_RSI', '立ち幅跳び', '12段跳び', '幅跳び/下肢長'],
