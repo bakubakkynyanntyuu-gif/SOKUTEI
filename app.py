@@ -77,7 +77,6 @@ st.markdown("""
         color: #ffffff !important;
         font-weight: 900 !important;
     }
-    /* ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝ */
     
     /* 詳細データ・解説テキスト */
     .data-row {
@@ -369,7 +368,7 @@ def load_excel_data(file_path_or_buffer):
             df['RAST_min_bw'] = pd.to_numeric(df[col], errors='coerce')
         elif '無酸素素平均/BW' in col or ('平均' in col and 'BW' in col): 
             df['RAST_mean_bw'] = pd.to_numeric(df[col], errors='coerce')
-        elif col == '減少率/SEC' or ('減少率' in col and 'SEC' in col): 
+        elif col == '減少率/SEC' or ('減少率' in col and 'SEC' in col and 'BW' not in col): 
             df['減少率/SEC'] = pd.to_numeric(df[col], errors='coerce')
 
     if '名前' not in df.columns: return df
@@ -441,12 +440,14 @@ st.sidebar.markdown("---")
 csv_data = player_data.to_csv(index=False).encode('utf-8')
 st.sidebar.download_button(label="💾 個人のCSVデータ出力", data=csv_data, file_name=f"{selected_name}_results.csv", mime='text/csv')
 
-col1, col2, col3, col4, col5 = st.columns(5)
+# 🌟 修正ポイント：カラムを6つにして「測定日」を追加
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1: st.metric("ID", latest_data['ID'])
 with col2: st.metric("選手", latest_data.get('名前', '---')[:10])
-with col3: st.metric("性別", player_gender)
-with col4: st.metric("身長", f"{latest_data['身長']:.0f}cm" if pd.notna(latest_data.get('身長')) else "---")
-with col5: st.metric("体重", "−" if player_gender == '女' else f"{latest_data['体重']:.0f}kg" if pd.notna(latest_data.get('体重')) else "---")
+with col3: st.metric("測定日", latest_data.get('測定日', '---'))
+with col4: st.metric("性別", player_gender)
+with col5: st.metric("身長", f"{latest_data['身長']:.0f}cm" if pd.notna(latest_data.get('身長')) else "---")
+with col6: st.metric("体重", "−" if player_gender == '女' else f"{latest_data['体重']:.0f}kg" if pd.notna(latest_data.get('体重')) else "---")
 
 # 自分のデータの算出
 gender_df = df[df['性別'] == player_gender]
@@ -463,7 +464,6 @@ radar_symbols_closed = radar_symbols + [radar_symbols[0]]
 marker_colors = ['#ef4444' if s == 'x' else '#c73a54' for s in radar_symbols_closed]
 marker_sizes = [12 if s == 'x' else 8 for s in radar_symbols_closed]
 
-# シミュレーターを削除し、3つのタブに戻す
 tab1, tab2, tab3 = st.tabs(["📊 レーダーチャート", "📈 推移グラフ", "📋 詳細データ"])
 
 with tab1:
@@ -484,14 +484,26 @@ with tab1:
         else:
             st.markdown(f"<div class='info-box'>💪 <strong>最大の武器</strong>：{top1_cat}<br>⚠️ <strong>ボトルネック</strong>：{worst_cat} (スコア: {worst_score:.1f})</div>", unsafe_allow_html=True)
 
-        # 🌟比較モードのUI
+        # 🌟 修正ポイント：比較モードに「過去の自分」を追加
         st.markdown("<br>#### 🆚 比較モード", unsafe_allow_html=True)
-        comp_mode = st.radio("レーダーチャートに重ねて比較", ["なし", "同性別平均", "ライバル選手"], horizontal=True)
+        comp_mode = st.radio("レーダーチャートに重ねて比較", ["なし", "過去の自分", "同性別平均", "ライバル選手"], horizontal=True)
         
         comp_radar = None
         comp_name = ""
         
-        if comp_mode == "同性別平均":
+        if comp_mode == "過去の自分":
+            if len(player_data) > 1:
+                # 最後のデータが最新なので、それより前のデータを選択リストにする
+                past_dates = player_data['測定日'].iloc[:-1].tolist()
+                selected_past_date = st.selectbox("比較する過去の測定日を選択", reversed(past_dates))
+                comp_name = f"過去の自分 ({selected_past_date})"
+                past_data = player_data[player_data['測定日'] == selected_past_date].iloc[0]
+                comp_scores = get_scores(past_data, player_gender, gender_df)
+                comp_radar, _ = get_radar_data(comp_scores)
+            else:
+                st.info("過去の測定データがありません。")
+                
+        elif comp_mode == "同性別平均":
             comp_name = "チーム平均"
             comp_data = gender_df.mean(numeric_only=True)
             comp_scores = get_scores(comp_data, player_gender, gender_df)
@@ -511,7 +523,7 @@ with tab1:
         fig_radar = go.Figure()
         # 自分
         fig_radar.add_trace(go.Scatterpolar(
-            r=radar_values_closed, theta=radar_categories_closed, fill='toself', name='自分',
+            r=radar_values_closed, theta=radar_categories_closed, fill='toself', name='現在',
             fillcolor='rgba(199, 58, 84, 0.3)', line=dict(color='#c73a54', width=3), 
             mode='lines+markers', marker=dict(symbol=radar_symbols_closed, size=marker_sizes, color=marker_colors)
         ))
@@ -605,20 +617,25 @@ with tab3:
                 rank = get_rank_label(score, val, a_mean, a_std, is_lower)
                 rank_class = get_rank_class(score, val, a_mean, a_std, is_lower)
                 
-                # 🌟 次のランクアップまでの差分を計算
+                # 🌟 修正ポイント：Wランクと未測定時のコメント追加
                 hint_html = ""
-                target_val = get_next_rank_target(rank, t_mean, t_std, a_mean, a_std, is_lower)
                 
-                if target_val is not None and pd.notna(val):
-                    diff = target_val - val
-                    diff_str = f"{abs(diff):.3f}" if k == '幅跳び/下肢長' else f"{abs(diff):.2f}"
-                    
-                    if is_lower:
-                        if diff < 0:
-                            hint_html = f"<div class='next-rank-hint'>✨ あと {diff_str} 縮めればワンランクアップ！</div>"
-                    else:
-                        if diff > 0:
-                            hint_html = f"<div class='next-rank-hint'>✨ あと {diff_str} 伸ばせばワンランクアップ！</div>"
+                if pd.isna(val):
+                    hint_html = "<div class='next-rank-hint'>✨ 己を知るために測定ができるときに測定しましょう！</div>"
+                elif rank == "W":
+                    hint_html = "<div class='next-rank-hint'>✨ 頂に近き者のみぞ、これを得む。高きに登るとも、ゆめゆめ驕ることなかれ。早稲田人にてあれ。</div>"
+                else:
+                    target_val = get_next_rank_target(rank, t_mean, t_std, a_mean, a_std, is_lower)
+                    if target_val is not None:
+                        diff = target_val - val
+                        diff_str = f"{abs(diff):.3f}" if k == '幅跳び/下肢長' else f"{abs(diff):.2f}"
+                        
+                        if is_lower:
+                            if diff < 0:
+                                hint_html = f"<div class='next-rank-hint'>✨ あと {diff_str} 縮めればワンランクアップ！</div>"
+                        else:
+                            if diff > 0:
+                                hint_html = f"<div class='next-rank-hint'>✨ あと {diff_str} 伸ばせばワンランクアップ！</div>"
                 
                 st.markdown(f"""
                     <div class='data-row'>
